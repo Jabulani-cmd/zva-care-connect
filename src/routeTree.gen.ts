@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrescriptionsRouteImport } from './routes/prescriptions'
 import { Route as LoginRouteImport } from './routes/login'
@@ -29,6 +30,11 @@ const TrackRoute = TrackRouteImport.update({
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prescriptions'
     | '/register'
+    | '/shop'
     | '/staff'
     | '/track'
     | '/product/$id'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prescriptions'
     | '/register'
+    | '/shop'
     | '/staff'
     | '/track'
     | '/product/$id'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prescriptions'
     | '/register'
+    | '/shop'
     | '/staff'
     | '/track'
     | '/product/$id'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PrescriptionsRoute: typeof PrescriptionsRoute
   RegisterRoute: typeof RegisterRoute
+  ShopRoute: typeof ShopRoute
   StaffRoute: typeof StaffRoute
   TrackRoute: typeof TrackRoute
   ProductIdRoute: typeof ProductIdRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrescriptionsRoute: PrescriptionsRoute,
   RegisterRoute: RegisterRoute,
+  ShopRoute: ShopRoute,
   StaffRoute: StaffRoute,
   TrackRoute: TrackRoute,
   ProductIdRoute: ProductIdRoute,

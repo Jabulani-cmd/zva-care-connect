@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DRIVERS, ORDERS_BY_STATUS, DRIVER_REVIEWS } from "@/lib/demo-data";
 import { Truck, Clock, Star, MapPin, CheckCircle2 } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
+import { useOrders } from "@/lib/orders";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/driver")({
   head: () => ({ meta: [{ title: "Driver Portal — Kings Pharmacy" }] }),
@@ -10,7 +12,9 @@ export const Route = createFileRoute("/driver")({
 
 function Driver() {
   const me = DRIVERS[0];
-  const assigned = [...ORDERS_BY_STATUS["Driver Assigned"], ...ORDERS_BY_STATUS["Out for Delivery"]].slice(0, 6);
+  const liveOrders = useOrders((s) => s.orders.filter((o) => o.status === "Driver Assigned" || o.status === "Out for Delivery"));
+  const setStatus = useOrders((s) => s.setStatus);
+  const assigned = [...liveOrders, ...ORDERS_BY_STATUS["Driver Assigned"], ...ORDERS_BY_STATUS["Out for Delivery"]].slice(0, 6);
   const myReviews = DRIVER_REVIEWS.filter((r) => r.subjectId === me.id).slice(0, 4);
 
   return (
@@ -39,23 +43,40 @@ function Driver() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100"><div className="font-black text-[#1B3A6B]">Assigned Deliveries</div></div>
           <ul className="divide-y divide-slate-100">
-            {assigned.map((o) => (
-              <li key={o.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-[#1B3A6B]">{o.id}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${o.status === "Out for Delivery" ? "bg-blue-100 text-blue-700" : "bg-indigo-100 text-indigo-700"}`}>{o.status}</span>
+            {assigned.map((o) => {
+              const custName = "customer" in o ? o.customer.name : o.customerName;
+              const custAddr = "customer" in o ? o.customer.address : o.address;
+              const isLive = !("customer" in o);
+              return (
+                <li key={o.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-[#1B3A6B]">{o.id}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${o.status === "Out for Delivery" ? "bg-blue-100 text-blue-700" : "bg-indigo-100 text-indigo-700"}`}>{o.status}</span>
+                    </div>
+                    <div className="font-bold text-sm text-[#1B3A6B] mt-1">{custName}</div>
+                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={11} />{custAddr}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{o.items.length} items · ${o.total.toFixed(2)} · {o.payment}</div>
                   </div>
-                  <div className="font-bold text-sm text-[#1B3A6B] mt-1">{o.customer.name}</div>
-                  <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={11} />{o.customer.address}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">{o.items.length} items · ${o.total.toFixed(2)} · {o.payment}</div>
-                </div>
-                <div className="flex gap-2 md:flex-col md:items-end shrink-0">
-                  <button className="px-4 py-2 rounded-full bg-[#1E5BC6] text-white text-xs font-bold whitespace-nowrap">Navigate</button>
-                  <button className="px-4 py-2 rounded-full border-2 border-emerald-500 text-emerald-600 text-xs font-bold whitespace-nowrap">Mark Delivered</button>
-                </div>
-              </li>
-            ))}
+                  <div className="flex gap-2 md:flex-col md:items-end shrink-0">
+                    <button className="px-4 py-2 rounded-full bg-[#1E5BC6] text-white text-xs font-bold whitespace-nowrap">Navigate</button>
+                    <button
+                      onClick={() => {
+                        if (isLive) {
+                          setStatus(o.id, o.status === "Driver Assigned" ? "Out for Delivery" : "Delivered");
+                          toast.success(o.status === "Driver Assigned" ? "Started delivery" : "Marked delivered");
+                        } else {
+                          toast.success("Marked delivered");
+                        }
+                      }}
+                      className="px-4 py-2 rounded-full border-2 border-emerald-500 text-emerald-600 text-xs font-bold whitespace-nowrap"
+                    >
+                      {isLive && o.status === "Driver Assigned" ? "Start Delivery" : "Mark Delivered"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
 

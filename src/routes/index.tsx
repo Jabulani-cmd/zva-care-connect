@@ -316,7 +316,7 @@ function Home() {
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-black text-[#1B3A6B]">Featured Products</h2>
           <button
-            onClick={() => navigate({ to: "/cart" })}
+            onClick={() => navigate({ to: "/shop" })}
             className="inline-flex items-center gap-1 text-sm font-semibold text-[#1E5BC6]
                        hover:text-[#1B3A6B] transition-colors group focus:outline-none"
           >

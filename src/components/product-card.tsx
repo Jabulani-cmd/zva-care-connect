@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
 import { ShoppingCart, Bell, Upload } from "lucide-react";
+import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import type { Product } from "@/lib/store";
 
 type Props = {
@@ -21,6 +23,7 @@ const STATUS = {
 export function ProductCard({ p, i = 0, imageUrl }: Props) {
   const navigate = useNavigate();
   const add = useStore((s) => s.add);
+  const user = useAuth((s) => s.user);
   const status = STATUS[p.stock] ?? STATUS.in;
   const isRx = p.stock === "rx";
   const isOut = p.stock === "out";
@@ -28,16 +31,22 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
   function handleCTA(e: React.MouseEvent) {
     e.stopPropagation();
     if (isOut) return;
-    if (isRx) {
-      navigate({ to: `/product/${p.id}`, search: { action: "upload-rx" } as never });
-    } else {
-      add(p.id, 1);
+    if (!user) {
+      toast.error("Please sign in to add items to your cart.");
+      navigate({ to: "/login" });
+      return;
     }
+    if (isRx) {
+      navigate({ to: "/prescriptions" });
+      return;
+    }
+    add(p.id, 1);
+    toast.success(`${p.name} added to cart`);
   }
 
   function handleNotify(e: React.MouseEvent) {
     e.stopPropagation();
-    alert(`We'll notify you when ${p.name} is back in stock!`);
+    toast.success(`We'll notify you when ${p.name} is back in stock.`);
   }
 
   return (

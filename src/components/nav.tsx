@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 
 const PUBLIC_TABS = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/cart", label: "Shop", icon: Store },
+  { to: "/shop", label: "Shop", icon: Store },
   { to: "/track", label: "Track Order", icon: MapPin },
 ] as const;
 

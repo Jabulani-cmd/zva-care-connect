@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useStore, getProduct, cartSubtotal } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
+import { useOrders } from "@/lib/orders";
 import { Minus, Plus, Trash2, ChevronLeft, Check, Loader2, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
@@ -12,12 +15,66 @@ const STEPS = ["Cart", "Delivery", "Payment", "Confirmed"] as const;
 
 function CartFlow() {
   const [step, setStep] = useState(0);
+  const [placedId, setPlacedId] = useState<string | null>(null);
   const nav = useNavigate();
+  const user = useAuth((s) => s.user);
+
+  // Capture delivery details to pass to order
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    name: user ? `${user.firstName} ${user.lastName}` : "",
+    phone: user?.phone ?? "+263 77 123 4567",
+    address: user?.address ?? "14 Samora Machel Ave, Harare",
+    instructions: "",
+  });
+  const [payMethod, setPayMethod] = useState<string>("EcoCash");
+
+  useEffect(() => {
+    if (user) {
+      setDeliveryInfo((d) => ({
+        ...d,
+        name: `${user.firstName} ${user.lastName}`,
+        phone: user.phone ?? d.phone,
+        address: user.address ?? d.address,
+      }));
+    }
+  }, [user]);
+
+
+  const { cart } = useStore();
+  const place = useOrders((s) => s.place);
+  const clear = useStore((s) => s.clear);
+
+  function handlePlaceOrder() {
+    if (!user) {
+      toast.error("Please sign in to place your order.");
+      nav({ to: "/login" });
+      return;
+    }
+    const subtotal = cartSubtotal(cart);
+    const items = cart.map((c) => {
+      const p = getProduct(c.id)!;
+      return { productId: p.id, name: p.name, price: p.price, qty: c.qty };
+    });
+    const order = place({
+      customerId: user.id,
+      customerName: deliveryInfo.name,
+      phone: deliveryInfo.phone,
+      address: deliveryInfo.address + (deliveryInfo.instructions ? ` — ${deliveryInfo.instructions}` : ""),
+      payment: payMethod,
+      items,
+      subtotal,
+      delivery: 2.5,
+      total: subtotal + 2.5,
+    });
+    setPlacedId(order.id);
+    clear();
+    setStep(3);
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => step === 0 ? nav({ to: "/" }) : setStep(step - 1)} className="flex items-center gap-1 text-sm font-semibold text-[#1B3A6B]">
+        <button onClick={() => step === 0 ? nav({ to: "/shop" }) : step === 3 ? nav({ to: "/track" }) : setStep(step - 1)} className="flex items-center gap-1 text-sm font-semibold text-[#1B3A6B]">
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
         <div className="hidden md:flex items-center gap-2">
@@ -40,14 +97,15 @@ function CartFlow() {
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
           {step === 0 && <CartReview next={() => setStep(1)} />}
-          {step === 1 && <Delivery next={() => setStep(2)} />}
-          {step === 2 && <Payment next={() => setStep(3)} />}
-          {step === 3 && <Confirmed />}
+          {step === 1 && <Delivery info={deliveryInfo} setInfo={setDeliveryInfo} next={() => setStep(2)} />}
+          {step === 2 && <Payment selected={payMethod} setSelected={setPayMethod} next={handlePlaceOrder} />}
+          {step === 3 && <Confirmed orderId={placedId} />}
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
+
 
 function CartReview({ next }: { next: () => void }) {
   const { cart, setQty, remove } = useStore();
@@ -104,18 +162,18 @@ function Row({ label, v }: { label: string; v: string }) {
   return <div className="flex justify-between text-sm"><span className="text-muted-foreground">{label}</span><span className="font-semibold">{v}</span></div>;
 }
 
-function Delivery({ next }: { next: () => void }) {
+function Delivery({ info, setInfo, next }: { info: { name: string; phone: string; address: string; instructions: string }; setInfo: (v: any) => void; next: () => void }) {
   const [mode, setMode] = useState<"asap" | "slot">("asap");
   const [slot, setSlot] = useState("Morning");
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setInfo((s: any) => ({ ...s, [k]: e.target.value }));
   return (
     <div className="bg-white rounded-2xl p-5 md:p-7 space-y-4 max-w-2xl mx-auto">
       <div className="font-black text-[#1B3A6B] text-lg">Delivery Details</div>
       <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="Full Name" v="Chipo Moyo" />
-        <Field label="Phone Number" v="+263 77 123 4567" />
-        <Field label="Delivery Address" v="14 Samora Machel Ave" full />
-        <Field label="City" v="Harare" />
-        <Field label="Special Instructions" v="" placeholder="e.g. apartment 4B, gate code 1234" full />
+        <Field label="Full Name" value={info.name} onChange={set("name")} />
+        <Field label="Phone Number" value={info.phone} onChange={set("phone")} />
+        <Field label="Delivery Address" value={info.address} onChange={set("address")} full />
+        <Field label="Special Instructions" value={info.instructions} onChange={set("instructions")} placeholder="e.g. apartment 4B, gate code 1234" full />
       </div>
 
       <div>
@@ -138,14 +196,19 @@ function Delivery({ next }: { next: () => void }) {
   );
 }
 
-function Field({ label, v, full, placeholder }: { label: string; v?: string; full?: boolean; placeholder?: string }) {
+function Field({ label, v, value, onChange, full, placeholder }: { label: string; v?: string; value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; full?: boolean; placeholder?: string }) {
   return (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
       <span className="text-xs font-bold text-[#1B3A6B]">{label}</span>
-      <input defaultValue={v} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      {onChange ? (
+        <input value={value ?? ""} onChange={onChange} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      ) : (
+        <input defaultValue={v} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      )}
     </label>
   );
 }
+
 
 type PayMethod = "ecocash" | "onemoney" | "innbucks" | "telecash" | "zipit" | "card" | "cod";
 const methods: { id: PayMethod; name: string; icon: string; iconBg: string; currency: string; desc: string }[] = [
@@ -158,14 +221,18 @@ const methods: { id: PayMethod; name: string; icon: string; iconBg: string; curr
   { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "ZiG / USD", desc: "Pay the driver when your order arrives." },
 ];
 
-function Payment({ next }: { next: () => void }) {
-  const [sel, setSel] = useState<PayMethod | null>(null);
+function Payment({ selected, setSelected, next }: { selected: string; setSelected: (m: string) => void; next: () => void }) {
+  const [sel, setSel] = useState<PayMethod | null>(() => methods.find((m) => m.name === selected)?.id ?? null);
+  function choose(id: PayMethod) {
+    setSel(id);
+    setSelected(methods.find((m) => m.id === id)!.name);
+  }
   return (
     <div className="grid md:grid-cols-5 gap-4 max-w-4xl mx-auto">
       <div className="md:col-span-3 space-y-2">
         <div className="font-black text-[#1B3A6B] text-lg mb-2">Choose Payment</div>
         {methods.map((m) => (
-          <button key={m.id} onClick={() => setSel(m.id)} className={`w-full text-left bg-white rounded-2xl p-3 flex items-center gap-3 border-2 transition ${sel === m.id ? "border-[#1E5BC6] shadow-md" : "border-transparent hover:border-border"}`}>
+          <button key={m.id} onClick={() => choose(m.id)} className={`w-full text-left bg-white rounded-2xl p-3 flex items-center gap-3 border-2 transition ${sel === m.id ? "border-[#1E5BC6] shadow-md" : "border-transparent hover:border-border"}`}>
             <div className="h-11 w-11 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: m.iconBg + "22", color: m.iconBg }}>{m.icon}</div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-sm text-[#1B3A6B]">{m.name} <span className="text-[10px] font-semibold text-muted-foreground ml-1">{m.currency}</span></div>
@@ -184,6 +251,7 @@ function Payment({ next }: { next: () => void }) {
     </div>
   );
 }
+
 
 function PayForm({ method, onSuccess }: { method: typeof methods[0]; onSuccess: () => void }) {
   const [phase, setPhase] = useState<"form" | "otp" | "processing" | "success">("form");
@@ -266,10 +334,16 @@ function CardNumber() {
   );
 }
 
-function Confirmed() {
-  const { cart, clear } = useStore();
-  const subtotal = cartSubtotal(cart);
-  const total = subtotal + 2.5;
+function Confirmed({ orderId }: { orderId: string | null }) {
+  const order = useOrders((s) => s.orders.find((o) => o.id === orderId));
+  if (!order) {
+    return (
+      <div className="max-w-xl mx-auto bg-white rounded-3xl p-8 text-center shadow-sm">
+        <div className="text-sm text-muted-foreground">Order not found.</div>
+        <Link to="/shop" className="block mt-5 h-12 rounded-full bg-[#1B3A6B] text-white font-bold leading-[3rem]">Back to shop</Link>
+      </div>
+    );
+  }
   return (
     <div className="max-w-xl mx-auto bg-white rounded-3xl p-8 text-center shadow-sm">
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", duration: 0.7 }} className="h-24 w-24 mx-auto rounded-full bg-[#1A7A4A] flex items-center justify-center text-white shadow-lg">
@@ -277,16 +351,18 @@ function Confirmed() {
       </motion.div>
       <h1 className="text-2xl font-black text-[#1B3A6B] mt-5">Order Confirmed!</h1>
       <div className="text-sm text-muted-foreground mt-1">Order ref</div>
-      <div className="font-black text-lg text-[#1E5BC6]">#KP-2026-00847</div>
+      <div className="font-black text-lg text-[#1E5BC6]">#{order.id}</div>
 
       <div className="text-left bg-[#F5F7FA] rounded-xl p-4 mt-5 space-y-1 text-sm">
-        <div className="flex justify-between"><span className="text-muted-foreground">Items</span><span className="font-bold">{cart.length}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold">${total.toFixed(2)}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span className="font-bold">14 Samora Machel Ave</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Items</span><span className="font-bold">{order.items.length}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold">${order.total.toFixed(2)}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Payment</span><span className="font-bold">{order.payment}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span className="font-bold text-right truncate ml-2">{order.address}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">ETA</span><span className="font-bold text-[#1A7A4A]">30-45 minutes</span></div>
       </div>
 
-      <Link to="/track" onClick={() => clear()} className="block mt-5 h-12 rounded-full bg-[#1B3A6B] text-white font-bold leading-[3rem]">Track My Order →</Link>
+      <Link to="/track" search={{ id: order.id } as never} className="block mt-5 h-12 rounded-full bg-[#1B3A6B] text-white font-bold leading-[3rem]">Track My Order →</Link>
     </div>
   );
 }
+
