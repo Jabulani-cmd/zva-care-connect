@@ -35,7 +35,7 @@ const slides = [
 
 // ── Category pills ─────────────────────────────────────────────────────────────
 const categories = [
-  { emoji: "💊", label: "Prescription", route: "/cart" },
+  { emoji: "💊", label: "Prescription", route: "/prescriptions", search: { new: "1" } },
   { emoji: "🩺", label: "OTC Medicines", route: "/cart" },
   { emoji: "👶", label: "Baby Care", route: "/cart" },
   { emoji: "💆", label: "Vitamins", route: "/cart" },
@@ -264,7 +264,7 @@ function Home() {
           {categories.map((c) => (
             <button
               key={c.label}
-              onClick={() => navigate({ to: c.route })}
+              onClick={() => navigate({ to: c.route, search: (c as any).search } as any)}
               className="shrink-0 flex flex-col items-center gap-2 bg-white rounded-2xl px-4 py-3
                          border border-slate-200 min-w-[90px]
                          hover:border-[#1E5BC6] hover:shadow-md hover:-translate-y-0.5

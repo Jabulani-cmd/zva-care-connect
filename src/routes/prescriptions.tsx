@@ -9,6 +9,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/prescriptions")({
   head: () => ({ meta: [{ title: "My Prescriptions — Kings Pharmacy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    new: s.new === "1" || s.new === 1 || s.new === true ? true : undefined,
+  }),
   component: () => <AuthGuard role="customer"><Prescriptions /></AuthGuard>,
 });
 
@@ -18,7 +21,8 @@ function Prescriptions() {
   const user = useAuth((s) => s.user)!;
   const all = useRx((s) => s.list);
   const mine = all.filter((r) => r.customerId === user.id).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-  const [view, setView] = useState<View>("list");
+  const { new: startNew } = Route.useSearch();
+  const [view, setView] = useState<View>(startNew ? "new" : "list");
 
   if (view === "new") {
     return <NewPrescription onDone={(id) => setView({ detail: id })} onCancel={() => setView("list")} />;
@@ -27,6 +31,7 @@ function Prescriptions() {
     const rec = all.find((r) => r.id === view.detail);
     if (rec) return <Detail rec={rec} onBack={() => setView("list")} />;
   }
+
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-5">
