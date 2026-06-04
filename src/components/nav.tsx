@@ -5,9 +5,11 @@ import { Logo } from "./logo";
 
 const tabs = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/", label: "Shop", icon: Store },
-  { to: "/", label: "Categories", icon: LayoutGrid },
+  { to: "/cart", label: "Shop", icon: Store },
   { to: "/track", label: "Track Order", icon: MapPin },
+  { to: "/staff", label: "Pharmacy", icon: LayoutGrid },
+  { to: "/driver", label: "Drivers", icon: MapPin },
+  { to: "/admin", label: "Admin", icon: LayoutGrid },
   { to: "/account", label: "Account", icon: User },
 ] as const;
 
