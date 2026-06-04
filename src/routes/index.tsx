@@ -103,7 +103,15 @@ function HeroCarousel() {
           transition={{ duration: 0.65, ease: [0.32, 0.72, 0, 1] }}
           className="absolute inset-0"
         >
-          <img src={s.img} alt="" className="w-full h-full object-cover" loading="eager" draggable={false} />
+          <img
+            src={s.img}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center 20%" }}
+            loading="eager"
+            draggable={false}
+          />
+
           {/* Directional gradient — text readable on left, photo visible on right */}
           <div className={`absolute inset-0 bg-gradient-to-r ${s.overlay}`} />
           {/* Subtle vignette bottom */}
