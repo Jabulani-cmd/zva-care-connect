@@ -2,17 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
 import { ShoppingCart, Bell, Upload } from "lucide-react";
 import { useCart } from "@/lib/store";
-
-type Product = {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  status: "in-stock" | "low-stock" | "out-of-stock" | "rx-required" | "branch-only";
-  category: string;
-  description?: string;
-  stock?: number;
-};
+import type { Product } from "@/lib/store";
 
 type Props = {
   p: Product;
