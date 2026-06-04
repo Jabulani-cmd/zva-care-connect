@@ -25,6 +25,16 @@ import catToothpaste from "@/assets/cat-toothpaste.jpg";
 import catSanitizer from "@/assets/cat-sanitizer.jpg";
 import catMasks from "@/assets/cat-masks.jpg";
 import catSoap from "@/assets/cat-soap.jpg";
+import catFirstAid from "@/assets/cat-firstaid.jpg";
+import catOximeter from "@/assets/cat-oximeter.jpg";
+import catPregTest from "@/assets/cat-pregtest.jpg";
+import catPads from "@/assets/cat-pads.jpg";
+import catEyeDrops from "@/assets/cat-eyedrops.jpg";
+import catNasalSpray from "@/assets/cat-nasalspray.jpg";
+import catSunglasses from "@/assets/cat-sunglasses.jpg";
+import catSunscreen from "@/assets/cat-sunscreen.jpg";
+import catEarDrops from "@/assets/cat-eardrops.jpg";
+import catShampoo from "@/assets/cat-shampoo.jpg";
 
 // ── Deterministic RNG (mulberry32) ──────────────────────────────────────────
 function rng(seed: number) {
@@ -55,6 +65,16 @@ const ICON: Record<string, { img: Img; emoji: string; color: string }> = {
   sanitizer:  { img: catSanitizer,  emoji: "🧴", color: "#EAF6FF" },
   masks:      { img: catMasks,      emoji: "😷", color: "#EAF6FF" },
   soap:       { img: catSoap,       emoji: "🧼", color: "#EAF6FF" },
+  firstaid:   { img: catFirstAid,   emoji: "🩹", color: "#FDECEA" },
+  oximeter:   { img: catOximeter,   emoji: "🫁", color: "#E6F4FF" },
+  pregtest:   { img: catPregTest,   emoji: "🧪", color: "#FFE6EE" },
+  pads:       { img: catPads,       emoji: "🌸", color: "#FFE6EE" },
+  eyedrops:   { img: catEyeDrops,   emoji: "👁️", color: "#E6F4FF" },
+  nasalspray: { img: catNasalSpray, emoji: "👃", color: "#E6F4FF" },
+  sunglasses: { img: catSunglasses, emoji: "🕶️", color: "#F0F2F5" },
+  sunscreen:  { img: catSunscreen,  emoji: "☀️", color: "#FFF1DB" },
+  eardrops:   { img: catEarDrops,   emoji: "👂", color: "#FFE9E9" },
+  shampoo:    { img: catShampoo,    emoji: "🧴", color: "#EAF6FF" },
   paracetamol:{ img: prodParacetamol, emoji: "💊", color: "#E8F1FF" },
   amoxicillin:{ img: prodAmoxicillin, emoji: "💊", color: "#E0EBFF" },
   vitc:       { img: prodVitC,        emoji: "🍊", color: "#FFF1DB" },
@@ -97,7 +117,7 @@ const SEED: Seed[] = [
   { name: "Sinutab Original", brand: "GSK", category: "OTC", iconKey: "painTablet", price: 4.30 },
   { name: "Demazin Cold Syrup", brand: "Merck", category: "OTC", iconKey: "syrup", price: 3.80 },
   { name: "Aerius 5mg", brand: "Merck", category: "OTC", iconKey: "painTablet", price: 6.20 },
-  { name: "Otrivin Nasal Spray", brand: "GSK", category: "OTC", iconKey: "sanitizer", price: 4.10 },
+  { name: "Otrivin Nasal Spray", brand: "GSK", category: "OTC", iconKey: "nasalspray", price: 4.10 },
   { name: "Vicks VapoRub 50g", brand: "P&G", category: "OTC", iconKey: "lotion", price: 3.40 },
   { name: "Strepsils Honey & Lemon", brand: "Reckitt", category: "OTC", iconKey: "painTablet", price: 2.20 },
   { name: "Benylin Cough Syrup", brand: "J&J", category: "OTC", iconKey: "syrup", price: 4.50 },
@@ -130,8 +150,8 @@ const SEED: Seed[] = [
   { name: "Foldable Wheelchair", brand: "Drive Medical", category: "Devices", iconKey: "wheelchair", price: 180.00, stock: "branch" },
   { name: "Walking Frame (Adjustable)", brand: "Drive Medical", category: "Devices", iconKey: "wheelchair", price: 62.00, stock: "branch" },
   { name: "Oxygen Concentrator 5L", brand: "Philips", category: "Devices", iconKey: "nebuliser", price: 620.00, stock: "branch" },
-  { name: "Pulse Oximeter", brand: "Beurer", category: "Devices", iconKey: "thermometer", price: 19.00 },
-  { name: "First Aid Kit (Family)", brand: "Elastoplast", category: "OTC", iconKey: "lotion", price: 14.50 },
+  { name: "Pulse Oximeter", brand: "Beurer", category: "Devices", iconKey: "oximeter", price: 19.00 },
+  { name: "First Aid Kit (Family)", brand: "Elastoplast", category: "OTC", iconKey: "firstaid", price: 14.50 },
 
   // — Baby Care —
   { name: "NAN Optipro Stage 1 Formula", brand: "Nestlé", category: "Baby Care", iconKey: "formula", price: 14.20, stock: "low" },
@@ -170,8 +190,8 @@ const SEED: Seed[] = [
   { name: "Sanitiser Gel 500ml", brand: "Dettol", category: "Personal Care", iconKey: "sanitizer", price: 4.40 },
   { name: "Surgical Face Masks (50ct)", brand: "3M", category: "Personal Care", iconKey: "masks", price: 8.00 },
   { name: "N95 Respirator (10ct)", brand: "3M", category: "Personal Care", iconKey: "masks", price: 12.40 },
-  { name: "Sunscreen SPF 50+", brand: "Eucerin", category: "Personal Care", iconKey: "lotion", price: 14.80 },
-  { name: "Hair Shampoo 400ml", brand: "Head & Shoulders", category: "Personal Care", iconKey: "sanitizer", price: 5.60 },
+  { name: "Sunscreen SPF 50+", brand: "Eucerin", category: "Personal Care", iconKey: "sunscreen", price: 14.80 },
+  { name: "Hair Shampoo 400ml", brand: "Head & Shoulders", category: "Personal Care", iconKey: "shampoo", price: 5.60 },
 
   // — Wound Care & First Aid —
   { name: "Betadine Solution 125ml", brand: "Mundipharma", category: "OTC", iconKey: "syrup", price: 4.80 },
@@ -182,21 +202,21 @@ const SEED: Seed[] = [
   { name: "Cotton Wool 100g", brand: "Generic", category: "OTC", iconKey: "lotion", price: 2.00 },
 
   // — Eye, ENT, Skin (Rx) —
-  { name: "Maxitrol Eye Drops", brand: "Alcon", category: "Prescription", iconKey: "syrup", price: 8.20, stock: "rx" },
-  { name: "Visine Eye Drops 15ml", brand: "J&J", category: "OTC", iconKey: "syrup", price: 4.20 },
-  { name: "Otosporin Ear Drops", brand: "GSK", category: "Prescription", iconKey: "syrup", price: 6.40, stock: "rx" },
+  { name: "Maxitrol Eye Drops", brand: "Alcon", category: "Prescription", iconKey: "eyedrops", price: 8.20, stock: "rx" },
+  { name: "Visine Eye Drops 15ml", brand: "J&J", category: "OTC", iconKey: "eyedrops", price: 4.20 },
+  { name: "Otosporin Ear Drops", brand: "GSK", category: "Prescription", iconKey: "eardrops", price: 6.40, stock: "rx" },
   { name: "Daktarin Cream 30g", brand: "J&J", category: "Prescription", iconKey: "lotion", price: 5.80, stock: "rx" },
   { name: "Fucidin Cream 15g", brand: "Leo Pharma", category: "Prescription", iconKey: "lotion", price: 9.60, stock: "rx" },
   { name: "Hydrocortisone 1% Cream", brand: "Cipla", category: "OTC", iconKey: "lotion", price: 4.20 },
 
   // — Women's Health —
-  { name: "Always Ultra Pads (16ct)", brand: "P&G", category: "Personal Care", iconKey: "nappies", price: 3.40 },
-  { name: "Pregnancy Test Strip", brand: "Clearblue", category: "Devices", iconKey: "thermometer", price: 4.80 },
+  { name: "Always Ultra Pads (16ct)", brand: "P&G", category: "Personal Care", iconKey: "pads", price: 3.40 },
+  { name: "Pregnancy Test Strip", brand: "Clearblue", category: "Devices", iconKey: "pregtest", price: 4.80 },
   { name: "Folic Acid 5mg", brand: "Cipla", category: "Vitamins", iconKey: "multivit", price: 3.20 },
   { name: "Pregnacare Prenatal", brand: "Vitabiotics", category: "Vitamins", iconKey: "multivit", price: 18.40 },
 
   // — Stomach & Digestion —
-  { name: "Eno Fruit Salt (Lemon)", brand: "GSK", category: "OTC", iconKey: "sanitizer", price: 2.40 },
+  { name: "Eno Fruit Salt (Lemon)", brand: "GSK", category: "OTC", iconKey: "syrup", price: 2.40 },
   { name: "Gaviscon Double Action", brand: "Reckitt", category: "OTC", iconKey: "syrup", price: 5.80 },
   { name: "Imodium 2mg", brand: "J&J", category: "OTC", iconKey: "painTablet", price: 4.20 },
   { name: "Rehidrat Sachets (8ct)", brand: "Adcock", category: "OTC", iconKey: "painTablet", price: 3.60 },
@@ -207,8 +227,8 @@ const SEED: Seed[] = [
   // — Cosmetics / Misc —
   { name: "Lip Balm Strawberry", brand: "Vaseline", category: "Cosmetics", iconKey: "lotion", price: 1.80 },
   { name: "Eucerin Face Cream 50ml", brand: "Eucerin", category: "Cosmetics", iconKey: "lotion", price: 19.40 },
-  { name: "Cetaphil Gentle Cleanser", brand: "Galderma", category: "Cosmetics", iconKey: "sanitizer", price: 16.80 },
-  { name: "Sunglasses UV Reading", brand: "Reading Plus", category: "Cosmetics", iconKey: "lotion", price: 8.40, stock: "branch" },
+  { name: "Cetaphil Gentle Cleanser", brand: "Galderma", category: "Cosmetics", iconKey: "lotion", price: 16.80 },
+  { name: "Sunglasses UV Reading", brand: "Reading Plus", category: "Cosmetics", iconKey: "sunglasses", price: 8.40, stock: "branch" },
 ];
 
 const stockFor = (r: () => number, override?: Stock): Stock => {
