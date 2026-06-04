@@ -23,46 +23,14 @@ export const Route = createFileRoute("/")({
 
 const KINGS_LOGO = logoAsset.url;
 
+const OVERLAY = "from-[#153A78]/70 via-[#1E4FA3]/35 to-transparent";
+const BADGE = "bg-white/15 text-white border-white/30";
 const slides = [
-  {
-    id: 0,
-    Icon: Zap,
-    label: "Fast Delivery",
-    title: "Prescriptions\nDelivered Fast",
-    sub: "Order before 5 pm — our pharmacists pack and dispatch to your door in 30 minutes across the city.",
-    cta: "Order Now",
-    route: "/cart",
-    img: hero1,
-    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
-    accent: "#EAF3FF",
-    badge: "bg-white/15 text-white border-white/30",
-  },
-  {
-    id: 1,
-    Icon: ShoppingBag,
-    label: "Shop Online",
-    title: "200+ Medicines\nIn Stock Today",
-    sub: "Browse our full catalogue of OTC and prescription products. Real stock, real prices, updated live.",
-    cta: "Shop Now",
-    route: "/cart",
-    img: hero2,
-    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
-    accent: "#EAF3FF",
-    badge: "bg-white/15 text-white border-white/30",
-  },
-  {
-    id: 2,
-    Icon: Crown,
-    label: "Loyalty Rewards",
-    title: "Earn Kings\nRewards Points",
-    sub: "Get 5% back in loyalty points on every order. Redeem for discounts, free delivery, and exclusive offers.",
-    cta: "Join Free Today",
-    route: "/account",
-    img: hero3,
-    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
-    accent: "#EAF3FF",
-    badge: "bg-white/15 text-white border-white/30",
-  },
+  { id: 0, Icon: Pill,          label: "Prescription Delivery", title: "Prescription\nDelivery Service",   sub: "Upload your script — our pharmacists verify, dispense, and dispatch within the hour.",      cta: "Order Now",      route: "/cart",    img: hero1, overlay: OVERLAY, accent: "#EAF3FF", badge: BADGE },
+  { id: 1, Icon: Zap,           label: "Same-Day Delivery",     title: "Fast Same-Day\nDelivery",          sub: "Order before 5pm and receive your medicines the same day — anywhere in the city.",          cta: "Track Demo",     route: "/track",   img: hero2, overlay: OVERLAY, accent: "#EAF3FF", badge: BADGE },
+  { id: 2, Icon: HeartHandshake,label: "Family Healthcare",     title: "Family Healthcare\nSolutions",     sub: "Trusted by thousands of families. Baby care, OTC, vitamins and clinical support in one place.", cta: "Browse Catalogue", route: "/cart", img: hero3, overlay: OVERLAY, accent: "#EAF3FF", badge: BADGE },
+  { id: 3, Icon: Truck,         label: "Chronic Medication",    title: "Chronic Medication\nManagement",   sub: "Auto-refills, reminders and monthly bundles for hypertension, diabetes and asthma patients.", cta: "Set Up Refills", route: "/account", img: hero4, overlay: OVERLAY, accent: "#EAF3FF", badge: BADGE },
+  { id: 4, Icon: Smartphone,    label: "Online Pharmacy",       title: "Online Pharmacy\nOrdering",        sub: "Browse 100+ products, pay securely and track your delivery — all from your phone.",          cta: "Shop Now",       route: "/cart",    img: hero5, overlay: OVERLAY, accent: "#EAF3FF", badge: BADGE },
 ];
 
 // ── Category pills ─────────────────────────────────────────────────────────────
