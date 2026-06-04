@@ -6,7 +6,10 @@ import { Logo } from "@/components/logo";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign In — Kings Pharmacy" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ role: (s.role as Role) || "customer" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    role: (s.role as Role) || "customer",
+    redirect: typeof s.redirect === "string" ? (s.redirect as string) : undefined,
+  }),
   component: Login,
 });
 
@@ -18,7 +21,7 @@ const ROLES: { id: Role; label: string; icon: any; desc: string }[] = [
 ];
 
 function Login() {
-  const { role: initialRole } = Route.useSearch();
+  const { role: initialRole, redirect: redirectTo } = Route.useSearch();
   const navigate = useNavigate();
   const login = useAuth((s) => s.login);
   const currentUser = useAuth((s) => s.user);
@@ -30,9 +33,18 @@ function Login() {
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const goNext = (r: Role) => {
+    if (redirectTo && r === "customer") {
+      window.location.assign(redirectTo);
+    } else {
+      navigate({ to: ROLE_HOME[r] });
+    }
+  };
+
   useEffect(() => {
-    if (currentUser) navigate({ to: ROLE_HOME[currentUser.role] });
-  }, [currentUser, navigate]);
+    if (currentUser) goNext(currentUser.role);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   const demoFor = DEMO_ACCOUNTS.find((u) => u.role === role)!;
 
@@ -50,7 +62,7 @@ function Login() {
       setError(r.error);
       return;
     }
-    navigate({ to: ROLE_HOME[r.user.role] });
+    goNext(r.user.role);
   };
 
   return (
