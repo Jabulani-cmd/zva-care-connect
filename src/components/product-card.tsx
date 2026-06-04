@@ -50,12 +50,12 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
                  hover:border-[#1E5BC6] hover:shadow-lg hover:-translate-y-0.5
                  active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col"
     >
-      <div className="relative overflow-hidden bg-slate-50" style={{ aspectRatio: "4/3" }}>
+      <div className="relative overflow-hidden bg-white border-b border-slate-100" style={{ aspectRatio: "1/1" }}>
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={p.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 w-[80%] h-[80%] m-auto object-contain transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (

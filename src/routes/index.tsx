@@ -8,6 +8,14 @@ import logoAsset from "@/assets/kings-logo.webp.asset.json";
 import hero1 from "@/assets/hero-1.jpg";
 import hero2 from "@/assets/hero-2.jpg";
 import hero3 from "@/assets/hero-3.jpg";
+import prodParacetamol from "@/assets/prod-paracetamol.jpg";
+import prodAmoxicillin from "@/assets/prod-amoxicillin.jpg";
+import prodVitC from "@/assets/prod-vitc.jpg";
+import prodFormula from "@/assets/prod-formula.jpg";
+import prodBP from "@/assets/prod-bp.jpg";
+import prodIbuprofen from "@/assets/prod-ibuprofen.jpg";
+import prodLotion from "@/assets/prod-lotion.jpg";
+import prodGlucose from "@/assets/prod-glucose.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,9 +39,9 @@ const slides = [
     cta: "Order Now",
     route: "/cart",
     img: hero1,
-    overlay: "from-[#0D2249]/90 via-[#1B3A6B]/80 to-transparent",
-    accent: "#93C5FD",
-    badge: "bg-blue-400/20 text-blue-200 border-blue-400/30",
+    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
+    accent: "#EAF3FF",
+    badge: "bg-white/15 text-white border-white/30",
   },
   {
     id: 1,
@@ -44,9 +52,9 @@ const slides = [
     cta: "Shop Now",
     route: "/cart",
     img: hero2,
-    overlay: "from-[#0A3622]/90 via-[#1A7A4A]/80 to-transparent",
-    accent: "#6EE7B7",
-    badge: "bg-emerald-400/20 text-emerald-200 border-emerald-400/30",
+    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
+    accent: "#EAF3FF",
+    badge: "bg-white/15 text-white border-white/30",
   },
   {
     id: 2,
@@ -57,9 +65,9 @@ const slides = [
     cta: "Join Free Today",
     route: "/account",
     img: hero3,
-    overlay: "from-[#3B0764]/90 via-[#6D28D9]/75 to-transparent",
-    accent: "#DDD6FE",
-    badge: "bg-violet-400/20 text-violet-200 border-violet-400/30",
+    overlay: "from-[#153A78]/85 via-[#1E4FA3]/55 to-[#1E4FA3]/10",
+    accent: "#EAF3FF",
+    badge: "bg-white/15 text-white border-white/30",
   },
 ];
 
@@ -268,14 +276,14 @@ function HeroCarousel() {
 // PRODUCT IMAGES — real Unsplash product photos mapped by product id
 // ════════════════════════════════════════════════════════════════════════════════
 export const PRODUCT_IMAGES: Record<string, string> = {
-  p1: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80&auto=format&fit=crop",
-  p2: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=80&auto=format&fit=crop",
-  p3: "https://images.unsplash.com/photo-1616671276441-2f2c277b8bf6?w=400&q=80&auto=format&fit=crop",
-  p4: "https://images.unsplash.com/photo-1619451334792-150fd785ee74?w=400&q=80&auto=format&fit=crop",
-  p5: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&auto=format&fit=crop",
-  p6: "https://images.unsplash.com/photo-1550572017-edd951b55104?w=400&q=80&auto=format&fit=crop",
-  p7: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400&q=80&auto=format&fit=crop",
-  p8: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400&q=80&auto=format&fit=crop",
+  p1: prodParacetamol,
+  p2: prodAmoxicillin,
+  p3: prodVitC,
+  p4: prodFormula,
+  p5: prodBP,
+  p6: prodIbuprofen,
+  p7: prodLotion,
+  p8: prodGlucose,
 };
 
 // ════════════════════════════════════════════════════════════════════════════════
