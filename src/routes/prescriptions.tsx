@@ -97,7 +97,7 @@ function NewPrescription({ onDone, onCancel }: { onDone: (id: string) => void; o
     notes: "",
   });
   const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   function onFile(f: File | null) {
     if (!f) return;
