@@ -65,12 +65,12 @@ const slides = [
 
 // ── Category pills ─────────────────────────────────────────────────────────────
 const categories = [
-  { emoji: "💊", label: "Prescription", route: "/catalogue?cat=prescription" },
-  { emoji: "🩺", label: "OTC Medicines", route: "/catalogue?cat=otc" },
-  { emoji: "👶", label: "Baby Care", route: "/catalogue?cat=baby" },
-  { emoji: "💆", label: "Vitamins", route: "/catalogue?cat=vitamins" },
-  { emoji: "🩹", label: "First Aid", route: "/catalogue?cat=firstaid" },
-  { emoji: "💄", label: "Cosmetics", route: "/catalogue?cat=cosmetics" },
+  { emoji: "💊", label: "Prescription", route: "/cart" },
+  { emoji: "🩺", label: "OTC Medicines", route: "/cart" },
+  { emoji: "👶", label: "Baby Care", route: "/cart" },
+  { emoji: "💆", label: "Vitamins", route: "/cart" },
+  { emoji: "🩹", label: "First Aid", route: "/cart" },
+  { emoji: "💄", label: "Cosmetics", route: "/cart" },
 ];
 
 // ── Trust bar items ────────────────────────────────────────────────────────────
@@ -334,7 +334,7 @@ function Home() {
           </div>
         </div>
         <button
-          onClick={() => navigate({ to: "/catalogue?cat=vitamins&promo=VITAMINS20" })}
+          onClick={() => navigate({ to: "/cart" })}
           className="shrink-0 bg-white text-[#1A7A4A] font-bold rounded-full px-5 py-2.5 text-sm
                      hover:shadow-xl hover:scale-105 active:scale-95
                      transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/60 ml-4"
@@ -348,7 +348,7 @@ function Home() {
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-black text-[#1B3A6B]">Featured Products</h2>
           <button
-            onClick={() => navigate({ to: "/catalogue" })}
+            onClick={() => navigate({ to: "/cart" })}
             className="inline-flex items-center gap-1 text-sm font-semibold text-[#1E5BC6]
                        hover:text-[#1B3A6B] transition-colors group focus:outline-none"
           >
