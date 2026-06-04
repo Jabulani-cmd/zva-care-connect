@@ -1,22 +1,28 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronRight, Package, FileText, MapPin, CreditCard, Heart, Bell, Settings, LogOut } from "lucide-react";
+import { AuthGuard } from "@/components/auth-guard";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/account")({
-  component: Account,
+  component: () => <AuthGuard role="customer"><Account /></AuthGuard>,
 });
 
 function Account() {
   const [refills, setRefills] = useState({ metformin: true, vitc: false });
+  const user = useAuth((s) => s.user)!;
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
+  const initials = user.avatar || (user.firstName[0] + user.lastName[0]).toUpperCase();
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 md:py-8 space-y-5">
       {/* Profile header */}
       <div className="bg-white rounded-2xl p-5 flex items-center gap-4">
-        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] flex items-center justify-center text-white text-2xl font-black">CM</div>
-        <div>
-          <div className="font-black text-xl text-[#1B3A6B]">Chipo Moyo</div>
-          <div className="text-xs text-muted-foreground">Member since 2024 · chipo@example.com</div>
+        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] flex items-center justify-center text-white text-2xl font-black">{initials}</div>
+        <div className="flex-1">
+          <div className="font-black text-xl text-[#1B3A6B]">{user.firstName} {user.lastName}</div>
+          <div className="text-xs text-muted-foreground">Member since 2024 · {user.email}</div>
         </div>
       </div>
 
@@ -87,7 +93,10 @@ function Account() {
         <LinkRow icon={Settings} label="Settings & Notifications" />
       </Section>
 
-      <button className="w-full bg-white rounded-2xl py-4 font-bold text-[#C0392B] flex items-center justify-center gap-2 hover:bg-red-50 transition">
+      <button
+        onClick={() => { logout(); navigate({ to: "/login" }); }}
+        className="w-full bg-white rounded-2xl py-4 font-bold text-[#C0392B] flex items-center justify-center gap-2 hover:bg-red-50 transition"
+      >
         <LogOut className="h-4 w-4" /> Log Out
       </button>
     </div>

@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ORDERS_BY_STATUS, PRESCRIPTIONS, PHARMACISTS, ASSISTANTS, PRODUCTS_ALL } from "@/lib/demo-data";
 import { FileText, Package, Truck, AlertTriangle, MessageCircle, Star } from "lucide-react";
+import { AuthGuard } from "@/components/auth-guard";
 
 export const Route = createFileRoute("/staff")({
   head: () => ({ meta: [{ title: "Pharmacy Staff Portal — Kings Pharmacy" }] }),
-  component: Staff,
+  component: () => <AuthGuard role="staff"><Staff /></AuthGuard>,
 });
 
 function Staff() {

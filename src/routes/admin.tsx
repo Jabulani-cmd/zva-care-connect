@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { KPIS, ORDERS, ORDERS_BY_STATUS } from "@/lib/demo-data";
 import { DollarSign, ShoppingBag, Users, Truck, TrendingUp, Package } from "lucide-react";
+import { AuthGuard } from "@/components/auth-guard";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Dashboard — Kings Pharmacy" }] }),
-  component: Admin,
+  component: () => <AuthGuard role="admin"><Admin /></AuthGuard>,
 });
 
 const fmt = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2)}M` : n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n.toLocaleString()}`;

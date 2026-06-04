@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DRIVERS, ORDERS_BY_STATUS, DRIVER_REVIEWS } from "@/lib/demo-data";
 import { Truck, Clock, Star, MapPin, CheckCircle2 } from "lucide-react";
+import { AuthGuard } from "@/components/auth-guard";
 
 export const Route = createFileRoute("/driver")({
   head: () => ({ meta: [{ title: "Driver Portal — Kings Pharmacy" }] }),
-  component: Driver,
+  component: () => <AuthGuard role="driver"><Driver /></AuthGuard>,
 });
 
 function Driver() {

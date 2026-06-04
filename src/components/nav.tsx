@@ -1,17 +1,22 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut } from "lucide-react";
 import { useStore, cartCount } from "@/lib/store";
+import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
 import { Logo } from "./logo";
+import { useState, useRef, useEffect } from "react";
 
-const tabs = [
+const PUBLIC_TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/cart", label: "Shop", icon: Store },
   { to: "/track", label: "Track Order", icon: MapPin },
-  { to: "/staff", label: "Pharmacy", icon: LayoutGrid },
-  { to: "/driver", label: "Drivers", icon: MapPin },
-  { to: "/admin", label: "Admin", icon: LayoutGrid },
-  { to: "/account", label: "Account", icon: User },
 ] as const;
+
+const ROLE_TABS: Record<Role, { to: string; label: string }[]> = {
+  customer: [{ to: "/account", label: "My Account" }],
+  staff: [{ to: "/staff", label: "Pharmacy Portal" }],
+  driver: [{ to: "/driver", label: "Driver Portal" }],
+  admin: [{ to: "/admin", label: "Admin Dashboard" }],
+};
 
 const mobileTabs = [
   { to: "/", label: "Home", icon: Home },
@@ -20,9 +25,70 @@ const mobileTabs = [
   { to: "/account", label: "Account", icon: User },
 ] as const;
 
+function UserMenu() {
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link to="/login" className="px-4 py-2 rounded-full text-sm font-bold text-[#1B3A6B] hover:bg-[#F5F7FA] transition">Sign In</Link>
+        <Link to="/register" className="px-4 py-2 rounded-full text-sm font-bold bg-[#1E5BC6] text-white hover:bg-[#1B3A6B] transition">Register</Link>
+      </div>
+    );
+  }
+
+  const initials = user.avatar || (user.firstName[0] + user.lastName[0]).toUpperCase();
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] flex items-center justify-center text-white text-sm font-bold ring-2 ring-[#1E5BC6]/10 hover:ring-[#1E5BC6]/30 transition"
+        aria-label="Account menu"
+      >
+        {initials}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-12 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+          <div className="p-4 bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] text-white">
+            <div className="font-black">{user.firstName} {user.lastName}</div>
+            <div className="text-xs opacity-80 truncate">{user.email}</div>
+            <div className="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">{user.role}</div>
+          </div>
+          <div className="p-1">
+            <Link to={ROLE_HOME[user.role]} onClick={() => setOpen(false)} className="block px-3 py-2 text-sm font-bold text-[#1B3A6B] hover:bg-[#F5F7FA] rounded-lg">My Dashboard</Link>
+            <button
+              onClick={() => { logout(); setOpen(false); navigate({ to: "/" }); }}
+              className="w-full text-left px-3 py-2 text-sm font-bold text-[#C0392B] hover:bg-red-50 rounded-lg flex items-center gap-2"
+            >
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TopNav() {
   const count = useStore((s) => cartCount(s.cart));
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const user = useAuth((s) => s.user);
+  const tabs = [
+    ...PUBLIC_TABS,
+    ...(user ? ROLE_TABS[user.role] : []),
+  ];
   return (
     <header className="hidden md:block sticky top-0 z-40 bg-white border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-[100px] flex items-center gap-6">
@@ -37,8 +103,8 @@ export function TopNav() {
           />
         </div>
         <nav className="flex items-center gap-1">
-          {tabs.map((t, i) => {
-            const active = path === t.to && i === 0;
+          {tabs.map((t) => {
+            const active = path === t.to;
             return (
               <Link
                 key={t.label}
@@ -64,9 +130,7 @@ export function TopNav() {
             )}
           </Link>
         </nav>
-        <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] flex items-center justify-center text-white text-sm font-bold ring-2 ring-[#1E5BC6]/10">
-          CM
-        </div>
+        <UserMenu />
       </div>
     </header>
   );
@@ -103,15 +167,17 @@ export function MobileHeader() {
 export function BottomTabs() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const count = useStore((s) => cartCount(s.cart));
+  const user = useAuth((s) => s.user);
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="grid grid-cols-4">
         {mobileTabs.map((t) => {
           const active = path === t.to;
+          const to = t.to === "/account" && !user ? "/login" : t.to;
           return (
             <Link
               key={t.to + t.label}
-              to={t.to}
+              to={to}
               className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
                 active ? "text-[#1E5BC6]" : "text-muted-foreground"
               }`}
