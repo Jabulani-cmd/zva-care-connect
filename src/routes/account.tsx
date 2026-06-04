@@ -1,8 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronRight, Package, FileText, MapPin, CreditCard, Heart, Bell, Settings, LogOut } from "lucide-react";
+import { ChevronRight, Package, FileText, MapPin, CreditCard, Heart, Bell, Settings, LogOut, Plus } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
 import { useAuth } from "@/lib/auth";
+import { useRx, statusColor } from "@/lib/rx";
 
 export const Route = createFileRoute("/account")({
   component: () => <AuthGuard role="customer"><Account /></AuthGuard>,
