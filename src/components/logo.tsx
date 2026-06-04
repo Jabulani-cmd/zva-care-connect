@@ -6,7 +6,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       <img
         src={logoAsset.url}
         alt="Kings Pharmacy"
-        className={compact ? "h-9 w-auto object-contain" : "h-11 w-auto object-contain"}
+        className={compact ? "h-[72px] w-auto object-contain" : "h-[88px] w-auto object-contain"}
       />
     </div>
   );
