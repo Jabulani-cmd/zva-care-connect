@@ -317,8 +317,8 @@ function Home() {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {PRODUCTS.map((p, i) => (
-            <ProductCard key={p.id} p={p} i={i} imageUrl={PRODUCT_IMAGES[p.id]} />
+          {FEATURED_PRODUCTS.map((p, i) => (
+            <ProductCard key={p.id} p={p} i={i} imageUrl={PRODUCT_IMAGE[p.id]} />
           ))}
         </div>
       </div>
