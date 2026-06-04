@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useStore, getProduct, cartSubtotal } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
+import { useOrders } from "@/lib/orders";
 import { Minus, Plus, Trash2, ChevronLeft, Check, Loader2, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
@@ -12,7 +15,30 @@ const STEPS = ["Cart", "Delivery", "Payment", "Confirmed"] as const;
 
 function CartFlow() {
   const [step, setStep] = useState(0);
+  const [placedId, setPlacedId] = useState<string | null>(null);
   const nav = useNavigate();
+  const user = useAuth((s) => s.user);
+
+  // Capture delivery details to pass to order
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    name: user ? `${user.firstName} ${user.lastName}` : "",
+    phone: user?.phone ?? "+263 77 123 4567",
+    address: user?.address ?? "14 Samora Machel Ave, Harare",
+    instructions: "",
+  });
+  const [payMethod, setPayMethod] = useState<string>("EcoCash");
+
+  useEffect(() => {
+    if (user) {
+      setDeliveryInfo((d) => ({
+        ...d,
+        name: `${user.firstName} ${user.lastName}`,
+        phone: user.phone ?? d.phone,
+        address: user.address ?? d.address,
+      }));
+    }
+  }, [user]);
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-8">
