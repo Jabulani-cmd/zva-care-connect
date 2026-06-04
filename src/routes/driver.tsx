@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DRIVERS, ORDERS_BY_STATUS, DRIVER_REVIEWS } from "@/lib/demo-data";
 import { Truck, Clock, Star, MapPin, CheckCircle2 } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
+import { useOrders } from "@/lib/orders";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/driver")({
   head: () => ({ meta: [{ title: "Driver Portal — Kings Pharmacy" }] }),
@@ -10,7 +12,9 @@ export const Route = createFileRoute("/driver")({
 
 function Driver() {
   const me = DRIVERS[0];
-  const assigned = [...ORDERS_BY_STATUS["Driver Assigned"], ...ORDERS_BY_STATUS["Out for Delivery"]].slice(0, 6);
+  const liveOrders = useOrders((s) => s.orders.filter((o) => o.status === "Driver Assigned" || o.status === "Out for Delivery"));
+  const setStatus = useOrders((s) => s.setStatus);
+  const assigned = [...liveOrders, ...ORDERS_BY_STATUS["Driver Assigned"], ...ORDERS_BY_STATUS["Out for Delivery"]].slice(0, 6);
   const myReviews = DRIVER_REVIEWS.filter((r) => r.subjectId === me.id).slice(0, 4);
 
   return (
