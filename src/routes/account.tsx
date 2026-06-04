@@ -93,7 +93,10 @@ function Account() {
         <LinkRow icon={Settings} label="Settings & Notifications" />
       </Section>
 
-      <button className="w-full bg-white rounded-2xl py-4 font-bold text-[#C0392B] flex items-center justify-center gap-2 hover:bg-red-50 transition">
+      <button
+        onClick={() => { logout(); navigate({ to: "/login" }); }}
+        className="w-full bg-white rounded-2xl py-4 font-bold text-[#C0392B] flex items-center justify-center gap-2 hover:bg-red-50 transition"
+      >
         <LogOut className="h-4 w-4" /> Log Out
       </button>
     </div>
