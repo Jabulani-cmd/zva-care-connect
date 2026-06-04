@@ -32,19 +32,30 @@ function Login() {
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [redirected, setRedirected] = useState(false);
 
   const goNext = (r: Role) => {
+    if (redirected) return;
+    setRedirected(true);
     if (redirectTo && r === "customer") {
-      window.location.assign(redirectTo);
+      // Parse the redirect URL to extract path + search params
+      try {
+        const url = new URL(redirectTo, window.location.origin);
+        navigate({ to: (url.pathname + url.search) as any, replace: true });
+      } catch {
+        navigate({ to: ROLE_HOME[r], replace: true });
+      }
     } else {
-      navigate({ to: ROLE_HOME[r] });
+      navigate({ to: ROLE_HOME[r], replace: true });
     }
   };
 
+  // Auto-redirect if already logged in (e.g. on page mount)
   useEffect(() => {
-    if (currentUser) goNext(currentUser.role);
+    if (currentUser && !loading) goNext(currentUser.role);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, []);
 
   const demoFor = DEMO_ACCOUNTS.find((u) => u.role === role)!;
 
@@ -56,13 +67,19 @@ function Login() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
-    const r = login(email, password, role);
-    if (!r.ok) {
-      setError(r.error);
-      return;
-    }
-    goNext(r.user.role);
+    setLoading(true);
+    // Simulate 800ms auth
+    setTimeout(() => {
+      const r = login(email, password, role);
+      if (!r.ok) {
+        setError("Incorrect email or password");
+        setLoading(false);
+        return;
+      }
+      goNext(r.user.role);
+    }, 800);
   };
 
   return (
@@ -155,9 +172,15 @@ function Login() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#1E5BC6] to-[#1B3A6B] text-white font-black py-3.5 rounded-xl hover:opacity-95 transition shadow-lg"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#1E5BC6] to-[#1B3A6B] text-white font-black py-3.5 rounded-xl hover:opacity-95 transition shadow-lg disabled:opacity-70 flex items-center justify-center gap-2 min-h-[48px]"
             >
-              Sign In
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Signing in…
+                </>
+              ) : "Sign In"}
             </button>
 
             <div className="bg-[#EAF3FF] rounded-xl p-3 text-xs">

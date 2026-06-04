@@ -21,7 +21,8 @@ interface Credential extends AuthUser {
 
 // Seeded demo accounts — all use Demo123 unless noted
 export const DEMO_ACCOUNTS: Credential[] = [
-  // Customers
+  // Customers — chipo@gmail.com is the primary demo customer (per spec)
+  { id: "c0", email: "chipo@gmail.com", password: "demo1234", firstName: "Chipo", lastName: "Mhuri", role: "customer", phone: "+263 77 000 0001", address: "10 Sam Nujoma St, Harare", avatar: "CM" },
   { id: "c1", email: "tendai@kingspharmacy.demo", password: "Demo123", firstName: "Tendai", lastName: "Moyo", role: "customer", phone: "+263 77 123 4567", address: "12 Samora Machel Ave, Harare", avatar: "TM" },
   { id: "c2", email: "nyasha@kingspharmacy.demo", password: "Demo123", firstName: "Nyasha", lastName: "Dube", role: "customer", phone: "+263 77 234 5678", address: "45 Borrowdale Rd, Harare", avatar: "ND" },
   { id: "c3", email: "blessing@kingspharmacy.demo", password: "Demo123", firstName: "Blessing", lastName: "Ncube", role: "customer", phone: "+263 71 345 6789", address: "8 Avondale Shopping Centre, Harare", avatar: "BN" },
@@ -38,6 +39,7 @@ export const DEMO_ACCOUNTS: Credential[] = [
   { id: "d3", email: "peter.driver@kingspharmacy.demo", password: "Demo123", firstName: "Peter", lastName: "Chikumba", role: "driver", phone: "+263 77 555 0003", avatar: "PC" },
 
   // Admin
+  { id: "a0", email: "admin@kingspharmacy.co.zw", password: "admin1234", firstName: "Admin", lastName: "Kings", role: "admin", title: "Administrator", avatar: "AK" },
   { id: "a1", email: "admin@kingspharmacy.demo", password: "Demo123", firstName: "Admin", lastName: "Kings", role: "admin", title: "Administrator", avatar: "AK" },
 ];
 
