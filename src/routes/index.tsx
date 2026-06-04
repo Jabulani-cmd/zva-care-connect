@@ -1,21 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
-import { PRODUCTS } from "@/lib/store";
+import { FEATURED_PRODUCTS, PRODUCT_IMAGE } from "@/lib/demo-data";
 import { ProductCard } from "@/components/product-card";
-import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag, Zap, Crown } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Truck, Zap, HeartHandshake, Pill, Smartphone } from "lucide-react";
 import logoAsset from "@/assets/kings-logo.webp.asset.json";
 import hero1 from "@/assets/hero-1.jpg";
 import hero2 from "@/assets/hero-2.jpg";
 import hero3 from "@/assets/hero-3.jpg";
-import prodParacetamol from "@/assets/prod-paracetamol.jpg";
-import prodAmoxicillin from "@/assets/prod-amoxicillin.jpg";
-import prodVitC from "@/assets/prod-vitc.jpg";
-import prodFormula from "@/assets/prod-formula.jpg";
-import prodBP from "@/assets/prod-bp.jpg";
-import prodIbuprofen from "@/assets/prod-ibuprofen.jpg";
-import prodLotion from "@/assets/prod-lotion.jpg";
-import prodGlucose from "@/assets/prod-glucose.jpg";
+import hero4 from "@/assets/hero-4.jpg";
+import hero5 from "@/assets/hero-5.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
