@@ -40,10 +40,41 @@ function CartFlow() {
   }, [user]);
 
 
+  const { cart } = useStore();
+  const place = useOrders((s) => s.place);
+  const clear = useStore((s) => s.clear);
+
+  function handlePlaceOrder() {
+    if (!user) {
+      toast.error("Please sign in to place your order.");
+      nav({ to: "/login" });
+      return;
+    }
+    const subtotal = cartSubtotal(cart);
+    const items = cart.map((c) => {
+      const p = getProduct(c.id)!;
+      return { productId: p.id, name: p.name, price: p.price, qty: c.qty };
+    });
+    const order = place({
+      customerId: user.id,
+      customerName: deliveryInfo.name,
+      phone: deliveryInfo.phone,
+      address: deliveryInfo.address + (deliveryInfo.instructions ? ` — ${deliveryInfo.instructions}` : ""),
+      payment: payMethod,
+      items,
+      subtotal,
+      delivery: 2.5,
+      total: subtotal + 2.5,
+    });
+    setPlacedId(order.id);
+    clear();
+    setStep(3);
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => step === 0 ? nav({ to: "/" }) : setStep(step - 1)} className="flex items-center gap-1 text-sm font-semibold text-[#1B3A6B]">
+        <button onClick={() => step === 0 ? nav({ to: "/shop" }) : step === 3 ? nav({ to: "/track" }) : setStep(step - 1)} className="flex items-center gap-1 text-sm font-semibold text-[#1B3A6B]">
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
         <div className="hidden md:flex items-center gap-2">
@@ -66,14 +97,15 @@ function CartFlow() {
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
           {step === 0 && <CartReview next={() => setStep(1)} />}
-          {step === 1 && <Delivery next={() => setStep(2)} />}
-          {step === 2 && <Payment next={() => setStep(3)} />}
-          {step === 3 && <Confirmed />}
+          {step === 1 && <Delivery info={deliveryInfo} setInfo={setDeliveryInfo} next={() => setStep(2)} />}
+          {step === 2 && <Payment selected={payMethod} setSelected={setPayMethod} next={handlePlaceOrder} />}
+          {step === 3 && <Confirmed orderId={placedId} />}
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
+
 
 function CartReview({ next }: { next: () => void }) {
   const { cart, setQty, remove } = useStore();
