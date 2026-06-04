@@ -162,18 +162,18 @@ function Row({ label, v }: { label: string; v: string }) {
   return <div className="flex justify-between text-sm"><span className="text-muted-foreground">{label}</span><span className="font-semibold">{v}</span></div>;
 }
 
-function Delivery({ next }: { next: () => void }) {
+function Delivery({ info, setInfo, next }: { info: { name: string; phone: string; address: string; instructions: string }; setInfo: (v: any) => void; next: () => void }) {
   const [mode, setMode] = useState<"asap" | "slot">("asap");
   const [slot, setSlot] = useState("Morning");
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setInfo((s: any) => ({ ...s, [k]: e.target.value }));
   return (
     <div className="bg-white rounded-2xl p-5 md:p-7 space-y-4 max-w-2xl mx-auto">
       <div className="font-black text-[#1B3A6B] text-lg">Delivery Details</div>
       <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="Full Name" v="Chipo Moyo" />
-        <Field label="Phone Number" v="+263 77 123 4567" />
-        <Field label="Delivery Address" v="14 Samora Machel Ave" full />
-        <Field label="City" v="Harare" />
-        <Field label="Special Instructions" v="" placeholder="e.g. apartment 4B, gate code 1234" full />
+        <Field label="Full Name" value={info.name} onChange={set("name")} />
+        <Field label="Phone Number" value={info.phone} onChange={set("phone")} />
+        <Field label="Delivery Address" value={info.address} onChange={set("address")} full />
+        <Field label="Special Instructions" value={info.instructions} onChange={set("instructions")} placeholder="e.g. apartment 4B, gate code 1234" full />
       </div>
 
       <div>
@@ -196,14 +196,19 @@ function Delivery({ next }: { next: () => void }) {
   );
 }
 
-function Field({ label, v, full, placeholder }: { label: string; v?: string; full?: boolean; placeholder?: string }) {
+function Field({ label, v, value, onChange, full, placeholder }: { label: string; v?: string; value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; full?: boolean; placeholder?: string }) {
   return (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
       <span className="text-xs font-bold text-[#1B3A6B]">{label}</span>
-      <input defaultValue={v} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      {onChange ? (
+        <input value={value ?? ""} onChange={onChange} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      ) : (
+        <input defaultValue={v} placeholder={placeholder} className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm outline-none focus:border-[#1E5BC6]" />
+      )}
     </label>
   );
 }
+
 
 type PayMethod = "ecocash" | "onemoney" | "innbucks" | "telecash" | "zipit" | "card" | "cod";
 const methods: { id: PayMethod; name: string; icon: string; iconBg: string; currency: string; desc: string }[] = [
