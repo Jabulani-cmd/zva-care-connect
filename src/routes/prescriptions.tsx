@@ -232,6 +232,16 @@ function NewPrescription({ onDone, onCancel }: { onDone: (id: string) => void; o
           <div className="mt-3 font-bold text-[#1B3A6B]">Submitting prescription…</div>
         </div>
       )}
+
+      {cameraOpen && (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onCapture={(url, name) => {
+            setImage({ url, name, type: "image/jpeg" });
+            setCameraOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
