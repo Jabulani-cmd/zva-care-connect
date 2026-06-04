@@ -12,7 +12,7 @@ const PUBLIC_TABS = [
 ] as const;
 
 const ROLE_TABS: Record<Role, { to: string; label: string }[]> = {
-  customer: [{ to: "/account", label: "My Account" }],
+  customer: [{ to: "/account", label: "My Account" }, { to: "/prescriptions", label: "Prescriptions" }],
   staff: [{ to: "/staff", label: "Pharmacy Portal" }],
   driver: [{ to: "/driver", label: "Driver Portal" }],
   admin: [{ to: "/admin", label: "Admin Dashboard" }],

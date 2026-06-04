@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrescriptionsRouteImport } from './routes/prescriptions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DriverRouteImport } from './routes/driver'
 import { Route as CartRouteImport } from './routes/cart'
@@ -33,6 +34,11 @@ const StaffRoute = StaffRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrescriptionsRoute = PrescriptionsRouteImport.update({
+  id: '/prescriptions',
+  path: '/prescriptions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/driver': typeof DriverRoute
   '/login': typeof LoginRoute
+  '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/driver': typeof DriverRoute
   '/login': typeof LoginRoute
+  '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/driver': typeof DriverRoute
   '/login': typeof LoginRoute
+  '/prescriptions': typeof PrescriptionsRoute
   '/register': typeof RegisterRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/driver'
     | '/login'
+    | '/prescriptions'
     | '/register'
     | '/staff'
     | '/track'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/driver'
     | '/login'
+    | '/prescriptions'
     | '/register'
     | '/staff'
     | '/track'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/driver'
     | '/login'
+    | '/prescriptions'
     | '/register'
     | '/staff'
     | '/track'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   DriverRoute: typeof DriverRoute
   LoginRoute: typeof LoginRoute
+  PrescriptionsRoute: typeof PrescriptionsRoute
   RegisterRoute: typeof RegisterRoute
   StaffRoute: typeof StaffRoute
   TrackRoute: typeof TrackRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prescriptions': {
+      id: '/prescriptions'
+      path: '/prescriptions'
+      fullPath: '/prescriptions'
+      preLoaderRoute: typeof PrescriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   DriverRoute: DriverRoute,
   LoginRoute: LoginRoute,
+  PrescriptionsRoute: PrescriptionsRoute,
   RegisterRoute: RegisterRoute,
   StaffRoute: StaffRoute,
   TrackRoute: TrackRoute,
