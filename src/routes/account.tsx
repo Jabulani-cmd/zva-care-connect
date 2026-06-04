@@ -1,13 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronRight, Package, FileText, MapPin, CreditCard, Heart, Bell, Settings, LogOut } from "lucide-react";
+import { AuthGuard } from "@/components/auth-guard";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/account")({
-  component: Account,
+  component: () => <AuthGuard role="customer"><Account /></AuthGuard>,
 });
 
 function Account() {
   const [refills, setRefills] = useState({ metformin: true, vitc: false });
+  const user = useAuth((s) => s.user)!;
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
+  const initials = user.avatar || (user.firstName[0] + user.lastName[0]).toUpperCase();
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 md:py-8 space-y-5">
