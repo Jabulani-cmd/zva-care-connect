@@ -42,7 +42,7 @@ interface Store {
 }
 
 export const useStore = create<Store>((set) => ({
-  cart: [{ id: "p1", qty: 2 }, { id: "p3", qty: 1 }],
+  cart: [],
   add: (id, qty = 1) => set((s) => {
     const e = s.cart.find((c) => c.id === id);
     if (e) return { cart: s.cart.map((c) => c.id === id ? { ...c, qty: c.qty + qty } : c) };
