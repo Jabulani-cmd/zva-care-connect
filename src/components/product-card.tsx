@@ -59,17 +59,27 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
                  hover:border-[#1E5BC6] hover:shadow-lg hover:-translate-y-0.5
                  active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col"
     >
-      <div className="relative overflow-hidden bg-white border-b border-slate-100" style={{ aspectRatio: "1/1" }}>
+      <div className="relative overflow-hidden bg-white border-b border-slate-100" style={{ aspectRatio: "4/3" }}>
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={p.name}
-            className="absolute inset-0 w-[80%] h-[80%] m-auto object-contain transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              const img = e.currentTarget;
+              img.style.display = "none";
+              const fb = img.nextElementSibling as HTMLElement | null;
+              if (fb) fb.style.display = "flex";
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl" style={{ background: p.color }}>{p.emoji}</div>
-        )}
+        ) : null}
+        <div
+          className="absolute inset-0 w-full h-full items-center justify-center text-5xl"
+          style={{ background: p.color, display: imageUrl ? "none" : "flex" }}
+        >
+          {p.emoji}
+        </div>
         {p.stock === "low" && p.stockCount !== undefined && (
           <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5 shadow">
             Only {p.stockCount} left

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
-import { FEATURED_PRODUCTS, PRODUCT_IMAGE } from "@/lib/demo-data";
+import { FEATURED_PRODUCTS, NEW_ARRIVALS, PRODUCT_IMAGE } from "@/lib/demo-data";
 import { ProductCard } from "@/components/product-card";
 import { ChevronLeft, ChevronRight, ArrowRight, Truck, Zap, HeartHandshake, Pill, Smartphone } from "lucide-react";
 import logoAsset from "@/assets/kings-logo.webp.asset.json";
@@ -327,6 +327,54 @@ function Home() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {FEATURED_PRODUCTS.map((p, i) => (
             <ProductCard key={p.id} p={p} i={i} imageUrl={PRODUCT_IMAGE[p.id]} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Medical Devices Promo Banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl px-6 py-6 md:px-10 md:py-8 flex items-center justify-between shadow-lg"
+        style={{ background: "#1B3A6B" }}
+      >
+        <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-white/5" />
+        <div className="absolute right-20 -top-10 w-28 h-28 rounded-full bg-white/5" />
+        <div className="relative max-w-md">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-blue-200 mb-1">Medical Devices</div>
+          <h3 className="text-white font-black text-lg md:text-2xl leading-tight">
+            Monitor Your Health at Home
+          </h3>
+          <p className="text-white/70 text-xs md:text-sm mt-1.5">
+            Blood pressure monitors, glucometers, thermometers &amp; more.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate({ to: "/shop", search: { cat: "Devices" } as any } as any)}
+          className="shrink-0 bg-white text-[#1B3A6B] font-bold rounded-full px-5 py-2.5 text-sm
+                     hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 ml-4"
+        >
+          Shop Devices
+        </button>
+      </motion.div>
+
+      {/* ── New Arrivals (horizontal scroll) ── */}
+      <div>
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-black text-[#1B3A6B]">New Arrivals</h2>
+          <button
+            onClick={() => navigate({ to: "/shop" })}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[#1E5BC6] hover:text-[#1B3A6B] transition-colors group focus:outline-none"
+          >
+            See all
+            <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+          </button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0 pb-2 scrollbar-none">
+          {NEW_ARRIVALS.map((p, i) => (
+            <div key={p.id} className="shrink-0 w-44 md:w-52">
+              <ProductCard p={p} i={i} imageUrl={PRODUCT_IMAGE[p.id]} />
+            </div>
           ))}
         </div>
       </div>

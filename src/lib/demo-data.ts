@@ -3,38 +3,6 @@
 // Single source of truth for the demo environment. Deterministic so SSR == CSR.
 // ============================================================================
 import type { Product, Stock } from "./store";
-import prodParacetamol from "@/assets/prod-paracetamol.jpg";
-import prodAmoxicillin from "@/assets/prod-amoxicillin.jpg";
-import prodVitC from "@/assets/prod-vitc.jpg";
-import prodFormula from "@/assets/prod-formula.jpg";
-import prodBP from "@/assets/prod-bp.jpg";
-import prodIbuprofen from "@/assets/prod-ibuprofen.jpg";
-import prodLotion from "@/assets/prod-lotion.jpg";
-import prodGlucose from "@/assets/prod-glucose.jpg";
-import catPainRelief from "@/assets/cat-painrelief.jpg";
-import catAntibiotic from "@/assets/cat-antibiotic.jpg";
-import catSyrup from "@/assets/cat-syrup.jpg";
-import catThermometer from "@/assets/cat-thermometer.jpg";
-import catNebuliser from "@/assets/cat-nebuliser.jpg";
-import catWheelchair from "@/assets/cat-wheelchair.jpg";
-import catNappies from "@/assets/cat-nappies.jpg";
-import catWipes from "@/assets/cat-wipes.jpg";
-import catVitD from "@/assets/cat-vitd.jpg";
-import catMultivit from "@/assets/cat-multivit.jpg";
-import catToothpaste from "@/assets/cat-toothpaste.jpg";
-import catSanitizer from "@/assets/cat-sanitizer.jpg";
-import catMasks from "@/assets/cat-masks.jpg";
-import catSoap from "@/assets/cat-soap.jpg";
-import catFirstAid from "@/assets/cat-firstaid.jpg";
-import catOximeter from "@/assets/cat-oximeter.jpg";
-import catPregTest from "@/assets/cat-pregtest.jpg";
-import catPads from "@/assets/cat-pads.jpg";
-import catEyeDrops from "@/assets/cat-eyedrops.jpg";
-import catNasalSpray from "@/assets/cat-nasalspray.jpg";
-import catSunglasses from "@/assets/cat-sunglasses.jpg";
-import catSunscreen from "@/assets/cat-sunscreen.jpg";
-import catEarDrops from "@/assets/cat-eardrops.jpg";
-import catShampoo from "@/assets/cat-shampoo.jpg";
 
 // ── Deterministic RNG (mulberry32) ──────────────────────────────────────────
 function rng(seed: number) {
@@ -48,225 +16,137 @@ function rng(seed: number) {
 const pick = <T,>(r: () => number, arr: readonly T[]) => arr[Math.floor(r() * arr.length)];
 const between = (r: () => number, a: number, b: number) => Math.floor(r() * (b - a + 1)) + a;
 
-// ── Product catalogue (110+) ────────────────────────────────────────────────
-type Img = string;
-const ICON: Record<string, { img: Img; emoji: string; color: string }> = {
-  painTablet: { img: catPainRelief, emoji: "💊", color: "#E8F1FF" },
-  antibiotic: { img: catAntibiotic, emoji: "💊", color: "#FFE6E6" },
-  syrup:      { img: catSyrup,      emoji: "🧴", color: "#FFE9E9" },
-  thermometer:{ img: catThermometer,emoji: "🌡️", color: "#EAF6FF" },
-  nebuliser:  { img: catNebuliser,  emoji: "💨", color: "#EAF6FF" },
-  wheelchair: { img: catWheelchair, emoji: "♿", color: "#F0F2F5" },
-  nappies:    { img: catNappies,    emoji: "🍼", color: "#FFE6EE" },
-  wipes:      { img: catWipes,      emoji: "🧻", color: "#FFEEF4" },
-  vitd:       { img: catVitD,       emoji: "🧈", color: "#FFF1DB" },
-  multivit:   { img: catMultivit,   emoji: "🌈", color: "#FFF6E0" },
-  toothpaste: { img: catToothpaste, emoji: "🪥", color: "#EAF6FF" },
-  sanitizer:  { img: catSanitizer,  emoji: "🧴", color: "#EAF6FF" },
-  masks:      { img: catMasks,      emoji: "😷", color: "#EAF6FF" },
-  soap:       { img: catSoap,       emoji: "🧼", color: "#EAF6FF" },
-  firstaid:   { img: catFirstAid,   emoji: "🩹", color: "#FDECEA" },
-  oximeter:   { img: catOximeter,   emoji: "🫁", color: "#E6F4FF" },
-  pregtest:   { img: catPregTest,   emoji: "🧪", color: "#FFE6EE" },
-  pads:       { img: catPads,       emoji: "🌸", color: "#FFE6EE" },
-  eyedrops:   { img: catEyeDrops,   emoji: "👁️", color: "#E6F4FF" },
-  nasalspray: { img: catNasalSpray, emoji: "👃", color: "#E6F4FF" },
-  sunglasses: { img: catSunglasses, emoji: "🕶️", color: "#F0F2F5" },
-  sunscreen:  { img: catSunscreen,  emoji: "☀️", color: "#FFF1DB" },
-  eardrops:   { img: catEarDrops,   emoji: "👂", color: "#FFE9E9" },
-  shampoo:    { img: catShampoo,    emoji: "🧴", color: "#EAF6FF" },
-  paracetamol:{ img: prodParacetamol, emoji: "💊", color: "#E8F1FF" },
-  amoxicillin:{ img: prodAmoxicillin, emoji: "💊", color: "#E0EBFF" },
-  vitc:       { img: prodVitC,        emoji: "🍊", color: "#FFF1DB" },
-  formula:    { img: prodFormula,     emoji: "🍼", color: "#FFE6EE" },
-  bp:         { img: prodBP,          emoji: "🩺", color: "#E6F4FF" },
-  ibuprofen:  { img: prodIbuprofen,   emoji: "💊", color: "#FFE6E6" },
-  lotion:     { img: prodLotion,      emoji: "🧴", color: "#EAF6FF" },
-  glucose:    { img: prodGlucose,     emoji: "🩸", color: "#FFE9E9" },
+// ── Unsplash image helper ───────────────────────────────────────────────────
+const u = (id: string) => `https://images.unsplash.com/photo-${id}?w=400&q=85&auto=format&fit=crop`;
+
+// Category palette/emoji used for fallback when an external image fails
+const CAT_META: Record<string, { emoji: string; color: string }> = {
+  "Prescription":    { emoji: "💊", color: "#E0EBFF" },
+  "OTC":             { emoji: "💊", color: "#E8F1FF" },
+  "Vitamins":        { emoji: "🍊", color: "#FFF1DB" },
+  "Devices":         { emoji: "🩺", color: "#E6F4FF" },
+  "First Aid":       { emoji: "🩹", color: "#FDECEA" },
+  "Baby Care":       { emoji: "🍼", color: "#FFE6EE" },
+  "Skincare":        { emoji: "🧴", color: "#EAF6FF" },
+  "Personal Care":   { emoji: "🧴", color: "#EAF6FF" },
+  "Health Foods":    { emoji: "🥤", color: "#FFF6E0" },
+  "Cosmetics":       { emoji: "💄", color: "#FFE6EE" },
 };
 
 type Seed = {
-  name: string; brand: string; category: string; iconKey: keyof typeof ICON;
-  price: number; stock?: Stock; dosage?: string; description?: string;
+  name: string; brand: string; category: string;
+  price: number; stock: Stock; stockCount?: number;
+  description: string; image: string; dosage?: string;
 };
 
+// Mapped status: rx-required→rx, in-stock→in, low-stock→low, out-of-stock→out
 const SEED: Seed[] = [
-  // — Pain & Fever (OTC) —
-  { name: "Panado 500mg", brand: "Adcock Ingram", category: "OTC", iconKey: "paracetamol", price: 1.20, dosage: "1-2 tablets every 4-6 hours" },
-  { name: "Disprin Original 300mg", brand: "Disprin", category: "OTC", iconKey: "painTablet", price: 1.40 },
-  { name: "Myprodol Capsules", brand: "Adcock Ingram", category: "OTC", iconKey: "painTablet", price: 3.20 },
-  { name: "Voltaren 50mg", brand: "GSK", category: "OTC", iconKey: "painTablet", price: 4.80 },
-  { name: "Brufen 400mg (Ibuprofen)", brand: "Abbott", category: "OTC", iconKey: "ibuprofen", price: 2.10 },
-  { name: "Calpol Infant Suspension", brand: "GSK", category: "Baby Care", iconKey: "syrup", price: 3.50 },
-  { name: "Grandpa Headache Powders", brand: "GSK", category: "OTC", iconKey: "painTablet", price: 1.80 },
-  { name: "Nurofen 200mg", brand: "Reckitt", category: "OTC", iconKey: "ibuprofen", price: 2.90 },
-  { name: "Stilpane Tablets", brand: "Aspen", category: "Prescription", iconKey: "painTablet", price: 5.20, stock: "rx" },
-  { name: "Tramacet 37.5mg", brand: "Janssen", category: "Prescription", iconKey: "painTablet", price: 8.60, stock: "rx" },
+  // ── Prescription Medicines ────────────────────────────────────────────────
+  { name: "Amoxicillin 500mg Capsules", brand: "Sandoz", category: "Prescription", price: 4.50, stock: "rx", description: "Broad-spectrum antibiotic capsules for bacterial infections. 21 capsules per pack.", image: u("1559757148-5c350d0d3c56"), dosage: "Take as prescribed by physician" },
+  { name: "Metformin 500mg Tablets", brand: "Glucophage", category: "Prescription", price: 6.20, stock: "rx", description: "Oral diabetes medication for type 2 diabetes management. 60 tablets per pack.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Amlodipine 5mg Tablets", brand: "Norvasc", category: "Prescription", price: 8.00, stock: "rx", description: "Calcium channel blocker for hypertension and angina. 30 tablets per pack.", image: u("1550572017-edd951b55104") },
+  { name: "Atorvastatin 20mg Tablets", brand: "Lipitor", category: "Prescription", price: 9.50, stock: "rx", description: "Statin medication for high cholesterol management. 30 tablets per pack.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Ciprofloxacin 500mg Tablets", brand: "Ciprobay", category: "Prescription", price: 7.80, stock: "rx", description: "Broad-spectrum antibiotic for urinary tract and respiratory infections. 10 tablets.", image: u("1559757148-5c350d0d3c56") },
+  { name: "Omeprazole 20mg Capsules", brand: "Losec", category: "Prescription", price: 5.50, stock: "rx", description: "Proton pump inhibitor for acid reflux and stomach ulcers. 28 capsules per pack.", image: u("1550572017-edd951b55104") },
+  { name: "Lisinopril 10mg Tablets", brand: "Zestril", category: "Prescription", price: 7.00, stock: "rx", description: "ACE inhibitor for high blood pressure and heart failure. 30 tablets per pack.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Salbutamol Inhaler 100mcg", brand: "Ventolin", category: "Prescription", price: 12.00, stock: "rx", description: "Reliever inhaler for asthma and bronchospasm. 200 doses per inhaler.", image: u("1576671081837-49000212a370") },
 
-  // — Antibiotics (Rx) —
-  { name: "Amoxil 250mg", brand: "GSK", category: "Prescription", iconKey: "amoxicillin", price: 4.50, stock: "rx" },
-  { name: "Augmentin 625mg", brand: "GSK", category: "Prescription", iconKey: "antibiotic", price: 12.40, stock: "rx" },
-  { name: "Zithromax 500mg", brand: "Pfizer", category: "Prescription", iconKey: "antibiotic", price: 14.80, stock: "rx" },
-  { name: "Ciprobay 500mg", brand: "Bayer", category: "Prescription", iconKey: "antibiotic", price: 9.60, stock: "rx" },
-  { name: "Flagyl 400mg", brand: "Sanofi", category: "Prescription", iconKey: "antibiotic", price: 5.20, stock: "rx" },
-  { name: "Doxycycline 100mg", brand: "Pfizer", category: "Prescription", iconKey: "antibiotic", price: 6.10, stock: "rx" },
-  { name: "Erythromycin 250mg", brand: "Abbott", category: "Prescription", iconKey: "antibiotic", price: 7.40, stock: "rx" },
+  // ── OTC Medicines ─────────────────────────────────────────────────────────
+  { name: "Paracetamol 500mg Tablets", brand: "Disprin", category: "OTC", price: 1.20, stock: "in", stockCount: 200, description: "Fast-acting pain and fever relief tablets. 24 tablets per pack.", image: u("1584308666744-24d5c474f2ae"), dosage: "1-2 tablets every 4-6 hours, max 8/day" },
+  { name: "Ibuprofen 400mg Tablets", brand: "Brufen", category: "OTC", price: 2.10, stock: "in", stockCount: 150, description: "Anti-inflammatory pain relief for headaches, muscle pain, and fever. 24 tablets.", image: u("1550572017-edd951b55104") },
+  { name: "Aspirin 300mg Tablets", brand: "Disprin", category: "OTC", price: 1.50, stock: "in", stockCount: 180, description: "Pain relief and fever reducer. Also used for heart health. 32 tablets per pack.", image: u("1559757148-5c350d0d3c56") },
+  { name: "Loratadine 10mg Antihistamine", brand: "Clarityne", category: "OTC", price: 3.20, stock: "in", stockCount: 90, description: "Non-drowsy antihistamine for hay fever and allergy relief. 30 tablets per pack.", image: u("1550572017-edd951b55104") },
+  { name: "Buscopan Antispasmodic Tablets", brand: "Buscopan", category: "OTC", price: 4.00, stock: "in", stockCount: 75, description: "Relieves stomach cramps, bloating, and IBS pain. 20 tablets per pack.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Strepsils Throat Lozenges", brand: "Strepsils", category: "OTC", price: 2.80, stock: "in", stockCount: 120, description: "Soothing antibacterial lozenges for sore throat relief. 24 lozenges per pack.", image: u("1559757175-0eb30cd8c063") },
+  { name: "Rennies Antacid Tablets", brand: "Rennies", category: "OTC", price: 2.50, stock: "in", stockCount: 100, description: "Fast-acting antacid for heartburn and indigestion relief. 24 tablets per pack.", image: u("1550572017-edd951b55104") },
+  { name: "Immodium Anti-Diarrhoeal", brand: "Immodium", category: "OTC", price: 3.50, stock: "in", stockCount: 85, description: "Fast relief from diarrhoea. 6 capsules per pack.", image: u("1559757148-5c350d0d3c56") },
+  { name: "Cough Syrup 200ml", brand: "Benylin", category: "OTC", price: 5.20, stock: "in", stockCount: 60, description: "Thick, soothing syrup for dry and chesty coughs. 200ml bottle.", image: u("1587854692152-cbe660dbde88") },
+  { name: "Rehydration Sachets (ORS)", brand: "Rehidrat", category: "OTC", price: 1.80, stock: "in", stockCount: 200, description: "Oral rehydration salts for dehydration from diarrhoea or vomiting. Pack of 10.", image: u("1559757148-5c350d0d3c56") },
 
-  // — Allergy & Cold —
-  { name: "Allergex 4mg", brand: "Adcock Ingram", category: "OTC", iconKey: "painTablet", price: 1.90 },
-  { name: "Sinutab Original", brand: "GSK", category: "OTC", iconKey: "painTablet", price: 4.30 },
-  { name: "Demazin Cold Syrup", brand: "Merck", category: "OTC", iconKey: "syrup", price: 3.80 },
-  { name: "Aerius 5mg", brand: "Merck", category: "OTC", iconKey: "painTablet", price: 6.20 },
-  { name: "Otrivin Nasal Spray", brand: "GSK", category: "OTC", iconKey: "nasalspray", price: 4.10 },
-  { name: "Vicks VapoRub 50g", brand: "P&G", category: "OTC", iconKey: "lotion", price: 3.40 },
-  { name: "Strepsils Honey & Lemon", brand: "Reckitt", category: "OTC", iconKey: "painTablet", price: 2.20 },
-  { name: "Benylin Cough Syrup", brand: "J&J", category: "OTC", iconKey: "syrup", price: 4.50 },
+  // ── Vitamins & Supplements ────────────────────────────────────────────────
+  { name: "Vitamin C 1000mg Effervescent", brand: "Redoxon", category: "Vitamins", price: 3.80, stock: "in", stockCount: 130, description: "Immune-boosting effervescent Vitamin C tablets. Orange flavour. 10 tablets.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Vitamin D3 1000IU Capsules", brand: "Solgar", category: "Vitamins", price: 7.50, stock: "in", stockCount: 80, description: "Supports bone health, immune function, and mood. 90 softgel capsules.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Omega-3 Fish Oil Capsules", brand: "Seven Seas", category: "Vitamins", price: 8.90, stock: "in", stockCount: 70, description: "High-strength fish oil for heart and brain health. 60 capsules per pack.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Multivitamin Complete Tablets", brand: "Centrum", category: "Vitamins", price: 9.20, stock: "in", stockCount: 95, description: "Complete daily multivitamin with 23 essential nutrients. 30 tablets per pack.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Zinc 20mg Tablets", brand: "Solgar", category: "Vitamins", price: 4.50, stock: "in", stockCount: 110, description: "Supports immune defence, skin health, and wound healing. 50 tablets per pack.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Iron + Folic Acid Tablets", brand: "Feroglobin", category: "Vitamins", price: 6.00, stock: "in", stockCount: 75, description: "Iron supplement for anaemia prevention and energy. 30 tablets per pack.", image: u("1550572017-edd951b55104") },
+  { name: "Calcium + Vitamin D Tablets", brand: "Caltrate", category: "Vitamins", price: 7.00, stock: "in", stockCount: 65, description: "Combined calcium and Vitamin D for strong bones and teeth. 60 tablets per pack.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Probiotics 10 Billion CFU", brand: "Reuteri", category: "Vitamins", price: 11.50, stock: "low", stockCount: 18, description: "Live cultures for gut health and digestive balance. 30 capsules per pack.", image: u("1616671276441-2f2c277b8bf6") },
 
-  // — Chronic / Cardio (Rx) —
-  { name: "Metformin 500mg", brand: "Cipla", category: "Prescription", iconKey: "painTablet", price: 3.20, stock: "rx" },
-  { name: "Glucophage XR 750mg", brand: "Merck", category: "Prescription", iconKey: "painTablet", price: 6.80, stock: "rx" },
-  { name: "Atenolol 50mg", brand: "AstraZeneca", category: "Prescription", iconKey: "painTablet", price: 2.40, stock: "rx" },
-  { name: "Amlodipine 10mg", brand: "Pfizer", category: "Prescription", iconKey: "painTablet", price: 3.10, stock: "rx" },
-  { name: "Losartan 50mg", brand: "Merck", category: "Prescription", iconKey: "painTablet", price: 4.20, stock: "rx" },
-  { name: "Aspirin Cardio 100mg", brand: "Bayer", category: "OTC", iconKey: "painTablet", price: 2.80 },
-  { name: "Simvastatin 20mg", brand: "Cipla", category: "Prescription", iconKey: "painTablet", price: 4.60, stock: "rx" },
-  { name: "Lipitor 20mg", brand: "Pfizer", category: "Prescription", iconKey: "painTablet", price: 12.80, stock: "rx" },
-  { name: "Plavix 75mg", brand: "Sanofi", category: "Prescription", iconKey: "painTablet", price: 18.40, stock: "rx" },
-  { name: "Warfarin 5mg", brand: "BMS", category: "Prescription", iconKey: "painTablet", price: 4.90, stock: "rx" },
+  // ── Medical Devices ───────────────────────────────────────────────────────
+  { name: "Digital Blood Pressure Monitor", brand: "Omron", category: "Devices", price: 45.00, stock: "in", stockCount: 25, description: "Automatic upper arm blood pressure monitor with large digital display. Omron HEM-7120.", image: u("1614935151651-0bea6508db6b") },
+  { name: "Digital Thermometer", brand: "Beurer", category: "Devices", price: 8.50, stock: "in", stockCount: 40, description: "Fast 10-second reading digital thermometer. Flexible tip. Memory recall function.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Blood Glucose Meter (Glucometer)", brand: "Accu-Chek", category: "Devices", price: 38.00, stock: "in", stockCount: 20, description: "Accurate blood glucose monitoring system with 10 test strips included. Accu-Chek Active.", image: u("1631549916768-4119b2e5f926") },
+  { name: "Glucometer Test Strips x50", brand: "Accu-Chek", category: "Devices", price: 22.00, stock: "in", stockCount: 35, description: "Compatible test strips for Accu-Chek Active glucose meters. 50 strips per box.", image: u("1631549916768-4119b2e5f926") },
+  { name: "Pulse Oximeter", brand: "Beurer", category: "Devices", price: 18.00, stock: "in", stockCount: 30, description: "Fingertip pulse oximeter for SpO2 and heart rate monitoring. Includes lanyard.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Nebuliser Machine", brand: "Omron", category: "Devices", price: 65.00, stock: "low", stockCount: 8, description: "Compressor nebuliser for asthma and respiratory medication delivery at home.", image: u("1576671081837-49000212a370") },
+  { name: "Wheelchair (Standard)", brand: "Karma", category: "Devices", price: 180.00, stock: "in", stockCount: 5, description: "Lightweight foldable standard wheelchair with anti-tip wheels. Weight capacity 100kg.", image: u("1558618666-fcd25c85cd64") },
+  { name: "Crutches (Adjustable Pair)", brand: "Drive Medical", category: "Devices", price: 28.00, stock: "in", stockCount: 15, description: "Height-adjustable underarm crutches. Lightweight aluminium. Sold as a pair.", image: u("1576091160550-2173dba999ef") },
 
-  // — Diabetes —
-  { name: "Diabetic Test Strips (50ct)", brand: "Accu-Chek", category: "Devices", iconKey: "glucose", price: 18.00, stock: "rx" },
-  { name: "Glucometer Accu-Chek Active", brand: "Roche", category: "Devices", iconKey: "glucose", price: 38.00 },
-  { name: "Lancets (100ct)", brand: "Accu-Chek", category: "Devices", iconKey: "glucose", price: 7.20 },
-  { name: "Insulin Syringes 1ml", brand: "BD", category: "Devices", iconKey: "glucose", price: 5.40 },
+  // ── First Aid & Wound Care ────────────────────────────────────────────────
+  { name: "First Aid Kit (Home)", brand: "St John", category: "First Aid", price: 14.50, stock: "in", stockCount: 40, description: "Complete 42-piece home first aid kit in red hard case with white cross. Wall-mountable.", image: u("1603398938378-e54eab446dde") },
+  { name: "Elastoplast Plasters Assorted x40", brand: "Elastoplast", category: "First Aid", price: 3.20, stock: "in", stockCount: 150, description: "Assorted fabric and waterproof plasters for cuts and grazes. 40 plasters per box.", image: u("1603398938378-e54eab446dde") },
+  { name: "Crepe Bandage 10cm", brand: "Fissan", category: "First Aid", price: 2.50, stock: "in", stockCount: 120, description: "Conforming crepe bandage for sprains and strains support. 10cm x 4m.", image: u("1603398938378-e54eab446dde") },
+  { name: "Antiseptic Wound Spray 100ml", brand: "Dettol", category: "First Aid", price: 4.80, stock: "in", stockCount: 85, description: "No-sting antiseptic spray for cleaning cuts, grazes, and minor wounds. 100ml.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Surgical Gloves (Box of 100)", brand: "Ansell", category: "First Aid", price: 12.00, stock: "in", stockCount: 50, description: "Latex-free disposable examination gloves. Powder-free. Size medium. Box of 100.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Surgical Face Masks (Box of 50)", brand: "3M", category: "First Aid", price: 8.50, stock: "in", stockCount: 200, description: "3-ply disposable surgical face masks. Fluid-resistant. Box of 50 masks.", image: u("1584308666744-24d5c474f2ae") },
 
-  // — Medical Equipment —
-  { name: "Omron Blood Pressure Monitor", brand: "Omron", category: "Devices", iconKey: "bp", price: 45.00 },
-  { name: "Wrist BP Monitor", brand: "Omron", category: "Devices", iconKey: "bp", price: 28.50 },
-  { name: "Digital Infrared Thermometer", brand: "Beurer", category: "Devices", iconKey: "thermometer", price: 22.00 },
-  { name: "Oral Digital Thermometer", brand: "Microlife", category: "Devices", iconKey: "thermometer", price: 6.50 },
-  { name: "Portable Nebuliser", brand: "Omron", category: "Devices", iconKey: "nebuliser", price: 64.00 },
-  { name: "Nebuliser Masks (Pediatric)", brand: "Omron", category: "Devices", iconKey: "nebuliser", price: 8.40 },
-  { name: "Foldable Wheelchair", brand: "Drive Medical", category: "Devices", iconKey: "wheelchair", price: 180.00, stock: "branch" },
-  { name: "Walking Frame (Adjustable)", brand: "Drive Medical", category: "Devices", iconKey: "wheelchair", price: 62.00, stock: "branch" },
-  { name: "Oxygen Concentrator 5L", brand: "Philips", category: "Devices", iconKey: "nebuliser", price: 620.00, stock: "branch" },
-  { name: "Pulse Oximeter", brand: "Beurer", category: "Devices", iconKey: "oximeter", price: 19.00 },
-  { name: "First Aid Kit (Family)", brand: "Elastoplast", category: "OTC", iconKey: "firstaid", price: 14.50 },
+  // ── Baby & Mother Care ────────────────────────────────────────────────────
+  { name: "NAN Pro 1 Infant Formula 400g", brand: "Nestlé NAN", category: "Baby Care", price: 12.00, stock: "low", stockCount: 12, description: "Stage 1 infant formula for babies 0–6 months. With probiotics. 400g tin.", image: u("1619451334792-150fd785ee74") },
+  { name: "Johnson's Baby Shampoo 300ml", brand: "Johnson's", category: "Baby Care", price: 4.50, stock: "in", stockCount: 80, description: "Gentle no-tears baby shampoo. Hypoallergenic and dermatologist tested. 300ml.", image: u("1608248597279-f99d160bfcbc") },
+  { name: "Pampers Active Baby Diapers Size 3", brand: "Pampers", category: "Baby Care", price: 9.80, stock: "in", stockCount: 60, description: "Soft and absorbent diapers for babies 6–10kg. 30 diapers per pack.", image: u("1619451334792-150fd785ee74") },
+  { name: "Infacol Colic Drops 50ml", brand: "Infacol", category: "Baby Care", price: 6.20, stock: "in", stockCount: 45, description: "Relieves infant colic, griping pain, and trapped wind. Safe from birth. 50ml.", image: u("1587854692152-cbe660dbde88") },
+  { name: "Baby Thermometer (Ear)", brand: "Braun", category: "Baby Care", price: 32.00, stock: "in", stockCount: 20, description: "Braun ThermoScan ear thermometer for accurate baby temperature readings. 1-second result.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Sudocrem Nappy Rash Cream 125g", brand: "Sudocrem", category: "Baby Care", price: 5.50, stock: "in", stockCount: 90, description: "Soothing antiseptic healing cream for nappy rash, eczema, and minor burns. 125g.", image: u("1608248597279-f99d160bfcbc") },
 
-  // — Baby Care —
-  { name: "NAN Optipro Stage 1 Formula", brand: "Nestlé", category: "Baby Care", iconKey: "formula", price: 14.20, stock: "low" },
-  { name: "S-26 Gold Stage 2", brand: "Wyeth", category: "Baby Care", iconKey: "formula", price: 16.80 },
-  { name: "Cerelac Wheat 6m+", brand: "Nestlé", category: "Baby Care", iconKey: "formula", price: 6.40 },
-  { name: "Pampers Premium Care (Size 3)", brand: "P&G", category: "Baby Care", iconKey: "nappies", price: 12.50 },
-  { name: "Huggies Gold Nappies (Size 4)", brand: "Huggies", category: "Baby Care", iconKey: "nappies", price: 13.80 },
-  { name: "Pampers Sensitive Wipes (80ct)", brand: "P&G", category: "Baby Care", iconKey: "wipes", price: 3.60 },
-  { name: "Baby Lotion 400ml", brand: "Johnson's", category: "Baby Care", iconKey: "lotion", price: 5.20 },
-  { name: "Baby Powder 200g", brand: "Johnson's", category: "Baby Care", iconKey: "lotion", price: 3.80 },
-  { name: "Baby Shampoo No-More-Tears", brand: "Johnson's", category: "Baby Care", iconKey: "lotion", price: 4.40 },
-  { name: "Gripe Water 150ml", brand: "Woodwards", category: "Baby Care", iconKey: "syrup", price: 4.10 },
+  // ── Skincare & Personal Care ──────────────────────────────────────────────
+  { name: "Nivea Body Lotion 400ml", brand: "Nivea", category: "Skincare", price: 6.50, stock: "in", stockCount: 100, description: "Deep moisture body lotion for normal to dry skin. 48-hour moisture. 400ml pump.", image: u("1608248597279-f99d160bfcbc") },
+  { name: "Dettol Antiseptic Liquid 500ml", brand: "Dettol", category: "Skincare", price: 5.80, stock: "in", stockCount: 110, description: "Multi-purpose antiseptic for wounds, bathing, and household disinfection. 500ml.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Savlon Antiseptic Cream 100g", brand: "Savlon", category: "Skincare", price: 3.90, stock: "in", stockCount: 95, description: "Antiseptic cream for cuts, grazes, minor burns, and skin infections. 100g tube.", image: u("1608248597279-f99d160bfcbc") },
+  { name: "Hand Sanitiser Gel 500ml", brand: "Dettol", category: "Skincare", price: 4.20, stock: "in", stockCount: 160, description: "70% alcohol hand sanitiser gel. Kills 99.9% of bacteria and viruses. 500ml pump.", image: u("1584308666744-24d5c474f2ae") },
+  { name: "Sunscreen SPF50 150ml", brand: "Neutrogena", category: "Skincare", price: 9.50, stock: "in", stockCount: 55, description: "Ultra-light broad-spectrum SPF50 sunscreen. Non-greasy. Water-resistant. 150ml.", image: u("1608248597279-f99d160bfcbc") },
+  { name: "Oral-B Toothbrush (Soft)", brand: "Oral-B", category: "Skincare", price: 2.80, stock: "in", stockCount: 200, description: "Soft bristle toothbrush for effective plaque removal. Ergonomic handle.", image: u("1607613009820-a29f7bb81c04") },
 
-  // — Vitamins & Supplements —
-  { name: "Redoxon Vitamin C 1000mg", brand: "Bayer", category: "Vitamins", iconKey: "vitc", price: 3.80 },
-  { name: "Vitamin D3 1000IU", brand: "Solgar", category: "Vitamins", iconKey: "vitd", price: 8.20 },
-  { name: "Centrum Adults Multivitamin", brand: "Pfizer", category: "Vitamins", iconKey: "multivit", price: 14.80 },
-  { name: "Berocca Performance", brand: "Bayer", category: "Vitamins", iconKey: "multivit", price: 9.40 },
-  { name: "Zinc Supplement 50mg", brand: "Solgar", category: "Vitamins", iconKey: "vitd", price: 6.80 },
-  { name: "Fish Oil Omega-3 1000mg", brand: "Solgar", category: "Vitamins", iconKey: "vitd", price: 12.40 },
-  { name: "Iron Tablets 65mg", brand: "Cipla", category: "Vitamins", iconKey: "multivit", price: 4.20 },
-  { name: "Calcium + D3", brand: "Caltrate", category: "Vitamins", iconKey: "multivit", price: 7.60 },
-  { name: "Magnesium 400mg", brand: "Solgar", category: "Vitamins", iconKey: "multivit", price: 8.80 },
-  { name: "Vitamin B Complex", brand: "Bayer", category: "Vitamins", iconKey: "multivit", price: 6.20 },
-  { name: "Probiotic 20 Billion", brand: "Bioplus", category: "Vitamins", iconKey: "multivit", price: 11.40 },
-  { name: "Glucosamine 1500mg", brand: "Solgar", category: "Vitamins", iconKey: "multivit", price: 14.20 },
-
-  // — Personal Care —
-  { name: "Colgate Total Toothpaste 100ml", brand: "Colgate", category: "Personal Care", iconKey: "toothpaste", price: 2.60 },
-  { name: "Sensodyne Repair & Protect", brand: "GSK", category: "Personal Care", iconKey: "toothpaste", price: 4.80 },
-  { name: "Listerine Cool Mint 500ml", brand: "J&J", category: "Personal Care", iconKey: "sanitizer", price: 5.40 },
-  { name: "Dettol Antibacterial Soap 100g", brand: "Reckitt", category: "Personal Care", iconKey: "soap", price: 1.60 },
-  { name: "Dove Beauty Cream Bar", brand: "Unilever", category: "Personal Care", iconKey: "soap", price: 1.80 },
-  { name: "Nivea Body Lotion 400ml", brand: "Nivea", category: "Personal Care", iconKey: "lotion", price: 6.50 },
-  { name: "Vaseline Petroleum Jelly 250ml", brand: "Unilever", category: "Personal Care", iconKey: "lotion", price: 3.20 },
-  { name: "Sanitiser Gel 500ml", brand: "Dettol", category: "Personal Care", iconKey: "sanitizer", price: 4.40 },
-  { name: "Surgical Face Masks (50ct)", brand: "3M", category: "Personal Care", iconKey: "masks", price: 8.00 },
-  { name: "N95 Respirator (10ct)", brand: "3M", category: "Personal Care", iconKey: "masks", price: 12.40 },
-  { name: "Sunscreen SPF 50+", brand: "Eucerin", category: "Personal Care", iconKey: "sunscreen", price: 14.80 },
-  { name: "Hair Shampoo 400ml", brand: "Head & Shoulders", category: "Personal Care", iconKey: "shampoo", price: 5.60 },
-
-  // — Wound Care & First Aid —
-  { name: "Betadine Solution 125ml", brand: "Mundipharma", category: "OTC", iconKey: "syrup", price: 4.80 },
-  { name: "Hydrogen Peroxide 100ml", brand: "Generic", category: "OTC", iconKey: "syrup", price: 1.40 },
-  { name: "Elastoplast Plasters (40ct)", brand: "Elastoplast", category: "OTC", iconKey: "lotion", price: 3.20 },
-  { name: "Gauze Bandage 5cm x 5m", brand: "Elastoplast", category: "OTC", iconKey: "lotion", price: 2.40 },
-  { name: "Antiseptic Cream 30g", brand: "Savlon", category: "OTC", iconKey: "lotion", price: 3.60 },
-  { name: "Cotton Wool 100g", brand: "Generic", category: "OTC", iconKey: "lotion", price: 2.00 },
-
-  // — Eye, ENT, Skin (Rx) —
-  { name: "Maxitrol Eye Drops", brand: "Alcon", category: "Prescription", iconKey: "eyedrops", price: 8.20, stock: "rx" },
-  { name: "Visine Eye Drops 15ml", brand: "J&J", category: "OTC", iconKey: "eyedrops", price: 4.20 },
-  { name: "Otosporin Ear Drops", brand: "GSK", category: "Prescription", iconKey: "eardrops", price: 6.40, stock: "rx" },
-  { name: "Daktarin Cream 30g", brand: "J&J", category: "Prescription", iconKey: "lotion", price: 5.80, stock: "rx" },
-  { name: "Fucidin Cream 15g", brand: "Leo Pharma", category: "Prescription", iconKey: "lotion", price: 9.60, stock: "rx" },
-  { name: "Hydrocortisone 1% Cream", brand: "Cipla", category: "OTC", iconKey: "lotion", price: 4.20 },
-
-  // — Women's Health —
-  { name: "Always Ultra Pads (16ct)", brand: "P&G", category: "Personal Care", iconKey: "pads", price: 3.40 },
-  { name: "Pregnancy Test Strip", brand: "Clearblue", category: "Devices", iconKey: "pregtest", price: 4.80 },
-  { name: "Folic Acid 5mg", brand: "Cipla", category: "Vitamins", iconKey: "multivit", price: 3.20 },
-  { name: "Pregnacare Prenatal", brand: "Vitabiotics", category: "Vitamins", iconKey: "multivit", price: 18.40 },
-
-  // — Stomach & Digestion —
-  { name: "Eno Fruit Salt (Lemon)", brand: "GSK", category: "OTC", iconKey: "syrup", price: 2.40 },
-  { name: "Gaviscon Double Action", brand: "Reckitt", category: "OTC", iconKey: "syrup", price: 5.80 },
-  { name: "Imodium 2mg", brand: "J&J", category: "OTC", iconKey: "painTablet", price: 4.20 },
-  { name: "Rehidrat Sachets (8ct)", brand: "Adcock", category: "OTC", iconKey: "painTablet", price: 3.60 },
-  { name: "Buscopan 10mg", brand: "Sanofi", category: "OTC", iconKey: "painTablet", price: 3.80 },
-  { name: "Omeprazole 20mg", brand: "Cipla", category: "Prescription", iconKey: "painTablet", price: 4.60, stock: "rx" },
-  { name: "Nexium 40mg", brand: "AstraZeneca", category: "Prescription", iconKey: "painTablet", price: 18.20, stock: "rx" },
-
-  // — Cosmetics / Misc —
-  { name: "Lip Balm Strawberry", brand: "Vaseline", category: "Cosmetics", iconKey: "lotion", price: 1.80 },
-  { name: "Eucerin Face Cream 50ml", brand: "Eucerin", category: "Cosmetics", iconKey: "lotion", price: 19.40 },
-  { name: "Cetaphil Gentle Cleanser", brand: "Galderma", category: "Cosmetics", iconKey: "lotion", price: 16.80 },
-  { name: "Sunglasses UV Reading", brand: "Reading Plus", category: "Cosmetics", iconKey: "sunglasses", price: 8.40, stock: "branch" },
+  // ── Health Foods & Nutrition ──────────────────────────────────────────────
+  { name: "Ensure Nutrition Shake Vanilla 400g", brand: "Abbott Ensure", category: "Health Foods", price: 18.00, stock: "in", stockCount: 30, description: "Complete balanced nutrition supplement drink for adults. Vanilla flavour. 400g tin.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Glucerna Diabetic Nutrition 400g", brand: "Abbott", category: "Health Foods", price: 22.00, stock: "low", stockCount: 10, description: "Specialised nutrition shake for people with diabetes. Slow-release carbohydrates. 400g.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Medlab Protein Powder 1kg", brand: "Medlab", category: "Health Foods", price: 28.00, stock: "out", stockCount: 0, description: "High-protein whey supplement for muscle recovery and general wellness. 1kg vanilla.", image: u("1616671276441-2f2c277b8bf6") },
+  { name: "Electrolyte Sports Drink Powder", brand: "Rehidrat Sport", category: "Health Foods", price: 5.50, stock: "in", stockCount: 75, description: "Electrolyte replenishment powder for dehydration and post-exercise recovery. 10 sachets.", image: u("1559757148-5c350d0d3c56") },
 ];
-
-const stockFor = (r: () => number, override?: Stock): Stock => {
-  if (override) return override;
-  const roll = r();
-  if (roll < 0.06) return "out";
-  if (roll < 0.14) return "low";
-  return "in";
-};
 
 const r0 = rng(20260604);
 export const PRODUCTS_ALL: Product[] = SEED.map((s, i) => {
-  const icon = ICON[s.iconKey];
-  const st = stockFor(r0, s.stock);
+  const meta = CAT_META[s.category] ?? { emoji: "💊", color: "#E8F1FF" };
   return {
     id: `kp-${String(i + 1).padStart(3, "0")}`,
     name: s.name,
     brand: s.brand,
     price: s.price,
-    emoji: icon.emoji,
-    color: icon.color,
-    stock: st,
-    stockCount: st === "low" ? between(r0, 2, 6) : undefined,
+    emoji: meta.emoji,
+    color: meta.color,
+    stock: s.stock,
+    stockCount: s.stockCount,
     category: s.category,
-    description: s.description ?? `${s.name} — high quality healthcare product from ${s.brand}.`,
+    description: s.description,
     dosage: s.dosage,
     manufacturer: s.brand,
     expiry: `${between(r0, 1, 12).toString().padStart(2, "0")}/202${between(r0, 6, 9)}`,
   };
 });
 
-// Map id → image
+// Map id → image URL
 export const PRODUCT_IMAGE: Record<string, string> = Object.fromEntries(
-  SEED.map((s, i) => [`kp-${String(i + 1).padStart(3, "0")}`, ICON[s.iconKey].img]),
+  SEED.map((s, i) => [`kp-${String(i + 1).padStart(3, "0")}`, s.image]),
 );
 
-// Featured = first 12
-export const FEATURED_PRODUCTS = PRODUCTS_ALL.slice(0, 12);
+// Featured = 8 products, one from each major category
+const FEATURED_IDS = ["kp-009", "kp-001", "kp-019", "kp-027", "kp-035", "kp-041", "kp-047", "kp-053"];
+export const FEATURED_PRODUCTS = FEATURED_IDS
+  .map((id) => PRODUCTS_ALL.find((p) => p.id === id)!)
+  .filter(Boolean);
+
+// New Arrivals = last 6 by id
+export const NEW_ARRIVALS = PRODUCTS_ALL.slice(-6).reverse();
 
 // ── People ──────────────────────────────────────────────────────────────────
 const FIRST = ["Tinashe","Tatenda","Tendai","Farai","Nyasha","Rumbidzai","Tanaka","Tapiwa","Chipo","Rutendo","Tariro","Kudzai","Munashe","Anesu","Panashe","Vimbai","Simbarashe","Tafara","Nokuthula","Tanyaradzwa","Blessing","Tonderai","Memory","Mercy","Privilege","Brighton","Joyce","Patience","Sharon","Lloyd","Lorraine","Tashinga","Tinotenda","Praise","Tafadzwa","Hope","Faith","John","Grace","Charity","Edmore","Edith","Knowledge","Wisdom","Comfort","Plaxedes","Pamhidzai","Munyaradzi","Tichaona","Cleopatra"];
