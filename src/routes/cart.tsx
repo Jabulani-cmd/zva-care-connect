@@ -98,7 +98,7 @@ function CartFlow() {
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
           {step === 0 && <CartReview next={() => setStep(1)} />}
           {step === 1 && <Delivery info={deliveryInfo} setInfo={setDeliveryInfo} next={() => setStep(2)} />}
-          {step === 2 && <Payment selected={payMethod} setSelected={setPayMethod} next={handlePlaceOrder} />}
+          {step === 2 && <Payment selected={payMethod} setSelected={setPayMethod} next={handlePlaceOrder} total={cartSubtotal(cart) + 2.5} />}
           {step === 3 && <Confirmed orderId={placedId} />}
         </motion.div>
       </AnimatePresence>
