@@ -292,7 +292,7 @@ function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSu
               <input key={i} maxLength={1} defaultValue={[1,2,3,4,5,6][i]} className="h-11 w-9 text-center font-black text-lg rounded-lg border-2 border-[#1E5BC6] outline-none" />
             ))}
           </div>
-          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold">Verify & Pay $26.30</button>
+          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold">Verify & Pay ${amt}</button>
         </>
       )}
       {phase === "form" && method.id === "zipit" && (
@@ -310,12 +310,12 @@ function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSu
           <div className="grid grid-cols-2 gap-2"><Field label="Expiry" placeholder="MM/YY" /><Field label="CVV" placeholder="123" /></div>
           <Field label="Cardholder Name" v="Chipo Moyo" />
           <Field label="Billing Address" v="14 Samora Machel Ave, Harare" />
-          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Pay Securely $26.30</button>
+          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Pay Securely ${amt}</button>
         </>
       )}
       {phase === "form" && method.id === "cod" && (
         <>
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">Have $26.30 ready for the driver on delivery.</div>
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">Have ${amt} ready for the driver on delivery.</div>
           <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold">Confirm Order</button>
         </>
       )}
