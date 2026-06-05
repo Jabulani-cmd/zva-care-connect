@@ -245,7 +245,7 @@ function Payment({ selected, setSelected, next, total }: { selected: string; set
       <div className="md:col-span-2">
         <div className="bg-white rounded-2xl p-5 sticky top-20">
           {!sel && <div className="text-sm text-muted-foreground text-center py-10">Select a payment method to continue</div>}
-          {sel && <PayForm method={methods.find((m) => m.id === sel)!} onSuccess={next} />}
+          {sel && <PayForm method={methods.find((m) => m.id === sel)!} onSuccess={next} total={total} />}
         </div>
       </div>
     </div>
