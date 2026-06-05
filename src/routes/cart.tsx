@@ -221,7 +221,7 @@ const methods: { id: PayMethod; name: string; icon: string; iconBg: string; curr
   { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "ZiG / USD", desc: "Pay the driver when your order arrives." },
 ];
 
-function Payment({ selected, setSelected, next }: { selected: string; setSelected: (m: string) => void; next: () => void }) {
+function Payment({ selected, setSelected, next, total }: { selected: string; setSelected: (m: string) => void; next: () => void; total: number }) {
   const [sel, setSel] = useState<PayMethod | null>(() => methods.find((m) => m.name === selected)?.id ?? null);
   function choose(id: PayMethod) {
     setSel(id);
