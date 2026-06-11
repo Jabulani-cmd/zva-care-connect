@@ -7,6 +7,26 @@ import { BranchPicker } from "./branch-picker";
 import { Logo } from "./logo";
 import { useState, useRef, useEffect } from "react";
 
+function BranchChip({ compact = false }: { compact?: boolean }) {
+  const id = useBranch((s) => s.selectedId);
+  const branch = getBranch(id);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border border-[#1E5BC6]/20 bg-[#EAF3FF] hover:bg-[#1E5BC6]/15 text-[#1B3A6B] font-bold transition ${compact ? "px-2 h-8 text-[11px]" : "px-3 h-9 text-xs"}`}
+        title={branch ? branch.address : "Choose your branch"}
+      >
+        <MapPin className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+        <span className="max-w-[10rem] truncate">{branch ? branch.area : "Choose branch"}</span>
+        <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+      {open && <BranchPicker open onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 const PUBLIC_TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/shop", label: "Shop", icon: Store },
