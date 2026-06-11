@@ -10,6 +10,9 @@ export const RX_STATUSES = [
   "Awaiting Pharmacist Review",
   "Info Requested",
   "Approved",
+  "Quotation Sent",
+  "Awaiting Payment",
+  "Paid",
   "Order Prepared",
   "Ready for Dispatch",
   "Out for Delivery",
@@ -18,16 +21,29 @@ export const RX_STATUSES = [
 ] as const;
 export type RxStatus = (typeof RX_STATUSES)[number];
 
-// Statuses that flow forward through fulfillment
+// Forward progress timeline (skips Info Requested / Rejected branches)
 export const RX_PROGRESS: RxStatus[] = [
   "Received",
   "Awaiting Pharmacist Review",
   "Approved",
+  "Quotation Sent",
+  "Awaiting Payment",
+  "Paid",
   "Order Prepared",
   "Ready for Dispatch",
   "Out for Delivery",
   "Delivered",
 ];
+
+export interface QuotationItem { name: string; qty: number; price: number }
+export interface Quotation {
+  items: QuotationItem[];
+  notes?: string;
+  total: number;
+  sentAt: string;
+  paidAt?: string;
+  paymentMethod?: string;
+}
 
 export interface RxRecord {
   id: string;
@@ -46,6 +62,8 @@ export interface RxRecord {
   updatedAt: string;             // ISO
   history: { status: RxStatus; at: string; note?: string }[];
   reviewerNote?: string;
+  quotation?: Quotation;
+  branchId?: string;
 }
 
 // ── Placeholder prescription images (SVG data URLs, look like Rx slips) ─────
