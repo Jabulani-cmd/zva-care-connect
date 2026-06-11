@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
-import { FEATURED_PRODUCTS, NEW_ARRIVALS, PRODUCT_IMAGE } from "@/lib/demo-data";
-import { ProductCard } from "@/components/product-card";
+import { FEATURED_PRODUCTS, NEW_ARRIVALS, PRODUCTS_ALL } from "@/lib/demo-data";
+import { ProductCarousel } from "@/components/product-carousel";
 import { ChevronLeft, ChevronRight, ArrowRight, Truck, Zap, HeartHandshake, Pill, Smartphone } from "lucide-react";
 import logoAsset from "@/assets/kings-logo.webp.asset.json";
 import hero1 from "@/assets/hero-1.jpg";
@@ -311,25 +311,22 @@ function Home() {
         </button>
       </motion.div>
 
-      {/* ── Featured Products ── */}
-      <div>
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-black text-[#1B3A6B]">Featured Products</h2>
-          <button
-            onClick={() => navigate({ to: "/shop" })}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[#1E5BC6]
-                       hover:text-[#1B3A6B] transition-colors group focus:outline-none"
-          >
-            See all
-            <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {FEATURED_PRODUCTS.map((p, i) => (
-            <ProductCard key={p.id} p={p} i={i} imageUrl={PRODUCT_IMAGE[p.id]} />
-          ))}
-        </div>
-      </div>
+      {/* ── Best Sellers ── */}
+      <ProductCarousel
+        eyebrow="Top Picks"
+        title="Best Sellers"
+        items={FEATURED_PRODUCTS}
+        seeAllTo="/shop"
+      />
+
+      {/* ── Deals of the Week ── */}
+      <ProductCarousel
+        eyebrow="Limited Time"
+        title="Deals of the Week"
+        items={PRODUCTS_ALL.filter((p) => p.stock !== "out" && p.stock !== "rx").slice(8, 20)}
+        seeAllTo="/shop"
+        ribbon={(_, i) => `-${[10, 15, 20, 25][i % 4]}%`}
+      />
 
       {/* ── Medical Devices Promo Banner ── */}
       <motion.div
@@ -358,26 +355,14 @@ function Home() {
         </button>
       </motion.div>
 
-      {/* ── New Arrivals (horizontal scroll) ── */}
-      <div>
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-black text-[#1B3A6B]">New Arrivals</h2>
-          <button
-            onClick={() => navigate({ to: "/shop" })}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[#1E5BC6] hover:text-[#1B3A6B] transition-colors group focus:outline-none"
-          >
-            See all
-            <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-          </button>
-        </div>
-        <div className="flex gap-3 overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0 pb-2 scrollbar-none">
-          {NEW_ARRIVALS.map((p, i) => (
-            <div key={p.id} className="shrink-0 w-44 md:w-52">
-              <ProductCard p={p} i={i} imageUrl={PRODUCT_IMAGE[p.id]} />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── New Arrivals ── */}
+      <ProductCarousel
+        eyebrow="Just In"
+        title="New Arrivals"
+        items={NEW_ARRIVALS}
+        seeAllTo="/shop"
+      />
+
 
       {/* ── Trust bar ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">

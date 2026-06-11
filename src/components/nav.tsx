@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut, ChevronDown } from "lucide-react";
+import { Home, ShoppingCart, MapPin, User, Store, Search, LogOut, ChevronDown, Truck, Building2 } from "lucide-react";
 import { useStore, cartCount } from "@/lib/store";
 import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
 import { useBranch, getBranch } from "@/lib/branches";
@@ -31,6 +31,18 @@ const PUBLIC_TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/shop", label: "Shop", icon: Store },
   { to: "/track", label: "Track Order", icon: MapPin },
+] as const;
+
+// Secondary nav — category quick links
+const CATEGORY_NAV = [
+  { label: "Pain Relief", cat: "OTC" },
+  { label: "Vitamins", cat: "Vitamins" },
+  { label: "Baby Care", cat: "Baby Care" },
+  { label: "First Aid", cat: "First Aid" },
+  { label: "Devices", cat: "Devices" },
+  { label: "Skincare", cat: "Skincare" },
+  { label: "Prescription", cat: "Prescription" },
+  { label: "Health Foods", cat: "Health Foods" },
 ] as const;
 
 const ROLE_TABS: Record<Role, { to: string; label: string }[]> = {
@@ -103,46 +115,47 @@ function UserMenu() {
   );
 }
 
+function PromoStrip() {
+  return (
+    <div className="hidden md:block bg-gradient-to-r from-[#1B3A6B] via-[#1E5BC6] to-[#1B3A6B] text-white text-[11px] font-semibold">
+      <div className="max-w-7xl mx-auto px-6 h-8 flex items-center justify-center gap-6">
+        <span>🚚 Free delivery in Bulawayo on orders over $30</span>
+        <span className="opacity-50">·</span>
+        <span>📋 Upload your prescription for an instant quote</span>
+        <span className="opacity-50">·</span>
+        <span>💳 EcoCash · ZimSwitch · Telecash accepted</span>
+      </div>
+    </div>
+  );
+}
+
 export function TopNav() {
   const count = useStore((s) => cartCount(s.cart));
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
   const user = useAuth((s) => s.user);
-  const tabs = [
-    ...PUBLIC_TABS,
-    ...(user ? ROLE_TABS[user.role] : []),
-  ];
+  const roleTabs = user ? ROLE_TABS[user.role] : [];
+
   return (
-    <header className="hidden md:block sticky top-0 z-40 bg-white border-b border-border shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 h-[100px] flex items-center gap-6">
-        <Link to="/" className="shrink-0">
-          <Logo />
-        </Link>
-        <BranchChip />
-        <div className="flex-1 max-w-2xl relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <input
-            placeholder="Search medicines, healthcare products, brands and categories..."
-            className="w-full h-[50px] rounded-full bg-[#F5F7FA] border border-transparent pl-12 pr-5 text-sm outline-none focus:ring-2 focus:ring-[#1E5BC6] focus:bg-white focus:border-[#1E5BC6]/20 transition"
-          />
-        </div>
-        <nav className="flex items-center gap-1">
-          {tabs.map((t) => {
-            const active = path === t.to;
-            return (
-              <Link
-                key={t.label}
-                to={t.to}
-                className={`px-3 py-2 rounded-full text-sm font-semibold transition ${
-                  active ? "bg-[#1B3A6B] text-white" : "text-[#1B3A6B] hover:bg-[#F5F7FA]"
-                }`}
-              >
-                {t.label}
-              </Link>
-            );
-          })}
+    <div className="hidden md:block sticky top-0 z-40 bg-white border-b border-border shadow-sm">
+      <PromoStrip />
+      <header>
+        {/* Row 1 — logo · search · branch + cart + account */}
+        <div className="max-w-7xl mx-auto px-6 h-[88px] flex items-center gap-5">
+          <Link to="/" className="shrink-0">
+            <Logo />
+          </Link>
+          <div className="flex-1 max-w-2xl relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <input
+              placeholder="Search medicines, healthcare products, brands and categories..."
+              className="w-full h-[48px] rounded-full bg-[#F5F7FA] border border-transparent pl-12 pr-5 text-sm outline-none focus:ring-2 focus:ring-[#1E5BC6] focus:bg-white focus:border-[#1E5BC6]/20 transition"
+            />
+          </div>
+          <BranchChip />
           <Link
             to="/cart"
-            className="ml-2 relative inline-flex items-center gap-2 bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white px-4 py-2.5 rounded-full text-sm font-semibold transition"
+            className="relative inline-flex items-center gap-2 bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white px-4 py-2.5 rounded-full text-sm font-semibold transition"
           >
             <ShoppingCart className="h-4 w-4" />
             Cart
@@ -152,15 +165,51 @@ export function TopNav() {
               </span>
             )}
           </Link>
-        </nav>
-        <UserMenu />
-      </div>
-    </header>
+          <UserMenu />
+        </div>
+
+        {/* Row 2 — category quick links + utility links */}
+        <div className="border-t border-slate-100 bg-white">
+          <div className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between gap-4">
+            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+              {CATEGORY_NAV.map((c) => (
+                <button
+                  key={c.label}
+                  onClick={() => navigate({ to: "/shop", search: { cat: c.cat } as any } as any)}
+                  className="shrink-0 px-3 h-8 rounded-full text-[12px] font-semibold text-[#1B3A6B] hover:bg-[#EAF3FF] hover:text-[#1E5BC6] transition"
+                >
+                  {c.label}
+                </button>
+              ))}
+            </nav>
+            <nav className="flex items-center gap-1 shrink-0">
+              {[...PUBLIC_TABS.filter((t) => t.to !== "/"), ...roleTabs].map((t) => {
+                const active = path === t.to;
+                const Icon = (t as any).icon as React.ComponentType<{ size?: number }> | undefined;
+                return (
+                  <Link
+                    key={t.label}
+                    to={t.to}
+                    className={`inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-bold transition ${
+                      active ? "bg-[#1B3A6B] text-white" : "text-[#1B3A6B] hover:bg-[#F5F7FA]"
+                    }`}
+                  >
+                    {Icon && <Icon size={13} />}
+                    {t.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      </header>
+    </div>
   );
 }
 
 export function MobileHeader() {
   const count = useStore((s) => cartCount(s.cart));
+  const navigate = useNavigate();
   return (
     <header className="md:hidden sticky top-0 z-40 bg-white border-b border-border shadow-sm">
       <div className="px-3 pt-2 pb-1 flex items-center gap-2">
@@ -183,8 +232,25 @@ export function MobileHeader() {
           )}
         </Link>
       </div>
-      <div className="px-3 pb-2 flex">
+      <div className="px-3 pb-2 flex items-center gap-2">
         <BranchChip compact />
+        <Link to="/track" className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1B3A6B] bg-slate-100 rounded-full px-2.5 h-8">
+          <Truck className="h-3 w-3" /> Track
+        </Link>
+        <Link to="/prescriptions" className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1B3A6B] bg-slate-100 rounded-full px-2.5 h-8">
+          📋 Rx
+        </Link>
+      </div>
+      <div className="px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
+        {CATEGORY_NAV.map((c) => (
+          <button
+            key={c.label}
+            onClick={() => navigate({ to: "/shop", search: { cat: c.cat } as any } as any)}
+            className="shrink-0 px-3 h-7 rounded-full text-[11px] font-semibold text-[#1B3A6B] bg-[#EAF3FF] hover:bg-[#1E5BC6] hover:text-white transition"
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
     </header>
   );
