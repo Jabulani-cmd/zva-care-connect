@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { CameraCapture } from "@/components/camera-capture";
 import { useAuth } from "@/lib/auth";
 import { useRx, RX_PROGRESS, statusColor, type RxRecord } from "@/lib/rx";
+import { Loader2 as Spinner } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/prescriptions")({
