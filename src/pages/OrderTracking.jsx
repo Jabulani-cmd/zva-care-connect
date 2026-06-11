@@ -1,14 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 const stages = [
-  { key: "submitted", label: "Order submitted", icon: "ti-file-text", time: "09:02 AM" },
-  { key: "review", label: "Reviewed by pharmacist", icon: "ti-stethoscope", time: "09:18 AM" },
-  { key: "quoted", label: "Quotation sent", icon: "ti-receipt", time: "09:25 AM" },
-  { key: "paid", label: "Payment received", icon: "ti-credit-card", time: "09:40 AM" },
-  { key: "packed", label: "Order packed", icon: "ti-package", time: "10:05 AM" },
-  { key: "dispatched", label: "Dispatched to driver", icon: "ti-truck", time: "10:20 AM" },
-  { key: "out_for_delivery", label: "Out for delivery", icon: "ti-map-pin", time: "10:32 AM" },
-  { key: "delivered", label: "Delivered", icon: "ti-check", time: null },
+  { key: "submitted", label: "Order submitted", icon: "📄", time: "09:02 AM" },
+  { key: "review", label: "Reviewed by pharmacist", icon: "👨‍⚕️", time: "09:18 AM" },
+  { key: "quoted", label: "Quotation sent", icon: "🧾", time: "09:25 AM" },
+  { key: "paid", label: "Payment received", icon: "💳", time: "09:40 AM" },
+  { key: "packed", label: "Order packed", icon: "📦", time: "10:05 AM" },
+  { key: "dispatched", label: "Dispatched to driver", icon: "🚚", time: "10:20 AM" },
+  { key: "out_for_delivery", label: "Out for delivery", icon: "📍", time: "10:32 AM" },
+  { key: "delivered", label: "Delivered", icon: "✅", time: null },
 ];
 
 export default function OrderTracking({ orderNumber = "KP-20413" }) {
@@ -21,24 +21,32 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
   // Driver marker position along the route (branch -> customer)
   let driverPos = null;
   let etaText = "Preparing your order";
-  if (currentIndex >= 6 && currentIndex < 7) {
+
+  if (currentIndex === 6) {
+    // Out for delivery – driver en route
     const progress = 0.55;
     driverPos = { x: 40 + (600 - 40) * progress, y: 120 + (60 - 120) * progress };
     etaText = "Driver is about 8 minutes away";
-  } else if (currentIndex >= 7) {
+  } else if (currentIndex === 7) {
+    // Delivered
     driverPos = { x: 600, y: 60 };
     etaText = "Delivered";
   } else if (currentIndex >= 5) {
+    // Dispatched – driver at branch
     driverPos = { x: 40, y: 120 };
     etaText = "Driver is collecting your order";
   }
+
+  // Safety guard: if currentIndex is somehow out of bounds, fallback to last stage
+  const safeIndex = Math.min(currentIndex, stages.length - 1);
+  const currentStage = stages[safeIndex];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-4">
         <div>
           <p className="text-sm text-gray-500">Order #{orderNumber}</p>
-          <p className="text-lg font-medium">{stages[currentIndex].label}</p>
+          <p className="text-lg font-medium">{currentStage.label}</p>
         </div>
         <button
           onClick={handleNext}
@@ -57,9 +65,7 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
           <text x="40" y="145" fontSize="11" textAnchor="middle" fill="#444">Branch</text>
           <circle cx="600" cy="60" r="8" fill="#993c1d" />
           <text x="600" y="40" fontSize="11" textAnchor="middle" fill="#444">You</text>
-          {driverPos && (
-            <circle cx={driverPos.x} cy={driverPos.y} r="10" fill="#185fa5" />
-          )}
+          {driverPos && <circle cx={driverPos.x} cy={driverPos.y} r="10" fill="#185fa5" />}
         </svg>
         <p className="text-sm text-gray-500 text-center mt-2">{etaText}</p>
       </div>
@@ -67,8 +73,8 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
       {/* Timeline */}
       <div>
         {stages.map((s, i) => {
-          const done = i <= currentIndex;
-          const isCurrent = i === currentIndex;
+          const done = i <= safeIndex;
+          const isCurrent = i === safeIndex;
           return (
             <div key={s.key} className="flex gap-3 relative pb-6">
               <div className="flex flex-col items-center w-8 flex-shrink-0">
@@ -77,11 +83,13 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
                     done ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  <i className={`ti ${s.icon} text-base`} aria-hidden="true"></i>
+                  <span role="img" aria-label={s.label}>
+                    {s.icon}
+                  </span>
                 </div>
                 {i < stages.length - 1 && (
                   <div
-                    className={`w-0.5 flex-1 mt-1 ${i < currentIndex ? "bg-blue-300" : "bg-gray-200"}`}
+                    className={`w-0.5 flex-1 mt-1 ${i < safeIndex ? "bg-blue-300" : "bg-gray-200"}`}
                   />
                 )}
               </div>
