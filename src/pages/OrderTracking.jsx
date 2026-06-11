@@ -40,68 +40,6 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
 
   return (
     <div style={{ maxWidth: "42rem", margin: "0 auto", padding: "1.5rem 1rem" }}>
-      <style>{`
-        .order-tracking-button {
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          padding: 0.5rem 1rem;
-          font-size: 0.875rem;
-          background: white;
-          cursor: pointer;
-        }
-        .order-tracking-button:hover {
-          background-color: #f9fafb;
-        }
-        .order-tracking-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .order-tracking-timeline-item {
-          display: flex;
-          gap: 0.75rem;
-          position: relative;
-          padding-bottom: 1.5rem;
-        }
-        .order-tracking-icon-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          width: 2rem;
-          flex-shrink: 0;
-        }
-        .order-tracking-icon {
-          width: 2rem;
-          height: 2rem;
-          border-radius: 9999px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .order-tracking-line {
-          width: 2px;
-          flex: 1;
-          margin-top: 0.25rem;
-        }
-        .order-tracking-content {
-          flex: 1;
-          padding-top: 0.25rem;
-        }
-        .order-tracking-label {
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-        .order-tracking-time {
-          font-size: 0.75rem;
-          margin-top: 0.125rem;
-        }
-        .order-tracking-inprogress {
-          font-weight: normal;
-          font-size: 0.75rem;
-          margin-left: 0.5rem;
-        }
-      `}</style>
-
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <div>
           <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Order #{orderNumber}</p>
@@ -110,13 +48,21 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
         <button
           onClick={handleNext}
           disabled={currentIndex >= stages.length - 1}
-          className="order-tracking-button"
+          style={{
+            border: "1px solid #d1d5db",
+            borderRadius: "0.375rem",
+            padding: "0.5rem 1rem",
+            fontSize: "0.875rem",
+            background: "white",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
         >
           {currentIndex >= stages.length - 1 ? "Delivered" : "Simulate next step"}
         </button>
       </div>
 
-      {/* Map placeholder */}
       <div style={{ backgroundColor: "#f9fafb", borderRadius: "0.5rem", padding: "1rem", marginBottom: "1.5rem" }}>
         <svg viewBox="0 0 640 160" style={{ width: "100%", height: "auto" }} role="img" aria-label="Map showing driver route from branch to customer">
           <line x1="40" y1="120" x2="600" y2="60" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="6 6" />
@@ -129,49 +75,49 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
         <p style={{ fontSize: "0.875rem", color: "#6b7280", textAlign: "center", marginTop: "0.5rem" }}>{etaText}</p>
       </div>
 
-      {/* Timeline */}
       <div>
         {stages.map((s, i) => {
           const done = i <= safeIndex;
           const isCurrent = i === safeIndex;
           return (
-            <div key={s.key} className="order-tracking-timeline-item">
-              <div className="order-tracking-icon-container">
+            <div key={s.key} style={{ display: "flex", gap: "0.75rem", position: "relative", paddingBottom: "1.5rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "2rem", flexShrink: 0 }}>
                 <div
-                  className="order-tracking-icon"
                   style={{
+                    width: "2rem",
+                    height: "2rem",
+                    borderRadius: "9999px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
                     backgroundColor: done ? "#dbeafe" : "#f3f4f6",
                     color: done ? "#1d4ed8" : "#9ca3af",
                   }}
                 >
-                  <span role="img" aria-label={s.label} style={{ fontSize: "1rem" }}>
-                    {s.icon}
-                  </span>
+                  <span role="img" aria-label={s.label} style={{ fontSize: "1rem" }}>{s.icon}</span>
                 </div>
                 {i < stages.length - 1 && (
                   <div
-                    className="order-tracking-line"
-                    style={{ backgroundColor: i < safeIndex ? "#93c5fd" : "#e5e7eb" }}
+                    style={{
+                      width: "2px",
+                      flex: 1,
+                      marginTop: "0.25rem",
+                      backgroundColor: i < safeIndex ? "#93c5fd" : "#e5e7eb",
+                    }}
                   />
                 )}
               </div>
-              <div className="order-tracking-content">
-                <p
-                  className="order-tracking-label"
-                  style={{ color: done ? "#111827" : "#9ca3af" }}
-                >
+              <div style={{ flex: 1, paddingTop: "0.25rem" }}>
+                <p style={{ fontSize: "0.875rem", fontWeight: "500", color: done ? "#111827" : "#9ca3af" }}>
                   {s.label}
                   {isCurrent && (
-                    <span className="order-tracking-inprogress" style={{ color: "#2563eb" }}>
+                    <span style={{ fontWeight: "normal", fontSize: "0.75rem", marginLeft: "0.5rem", color: "#2563eb" }}>
                       — in progress
                     </span>
                   )}
                 </p>
-                {s.time && (
-                  <p className="order-tracking-time" style={{ color: "#9ca3af" }}>
-                    {s.time}
-                  </p>
-                )}
+                {s.time && <p style={{ fontSize: "0.75rem", marginTop: "0.125rem", color: "#9ca3af" }}>{s.time}</p>}
               </div>
             </div>
           );
