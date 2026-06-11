@@ -334,3 +334,64 @@ function Detail({ rec, onBack }: { rec: RxRecord; onBack: () => void }) {
 function Detail2({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between gap-3"><span className="text-slate-500">{k}</span><span className="font-bold text-[#1B3A6B] text-right">{v}</span></div>;
 }
+
+const PAY_METHODS = ["EcoCash", "ZimSwitch", "Telecash", "Cash on Delivery"] as const;
+
+function QuotationPanel({ rec }: { rec: RxRecord }) {
+  const payQuotation = useRx((s) => s.payQuotation);
+  const [paying, setPaying] = useState(false);
+  const [method, setMethod] = useState<string>("EcoCash");
+  if (!rec.quotation) return null;
+  const q = rec.quotation;
+  const paid = !!q.paidAt;
+
+  function pay() {
+    setPaying(true);
+    setTimeout(() => {
+      payQuotation(rec.id, method);
+      toast.success(`Payment confirmed via ${method}.`);
+      setPaying(false);
+    }, 1100);
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#1E5BC6]/30 p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-[#1E5BC6]">Quotation</div>
+          <div className="font-black text-lg text-[#1B3A6B]">Pharmacist Quotation</div>
+        </div>
+        {paid && <span className="text-[10px] font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">PAID</span>}
+      </div>
+      <ul className="divide-y divide-slate-100">
+        {q.items.map((it, i) => (
+          <li key={i} className="py-2 flex justify-between text-sm">
+            <span className="text-[#1B3A6B]">{it.name} <span className="text-slate-400">×{it.qty}</span></span>
+            <span className="font-bold text-[#1B3A6B]">${(it.qty * it.price).toFixed(2)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="border-t border-slate-200 mt-2 pt-2 flex justify-between font-black text-[#1B3A6B] text-lg">
+        <span>Total</span><span>${q.total.toFixed(2)}</span>
+      </div>
+      {q.notes && <div className="mt-2 text-xs text-slate-500 italic">{q.notes}</div>}
+
+      {!paid && (
+        <div className="mt-4 space-y-2">
+          <div className="text-xs font-bold text-[#1B3A6B]">Choose payment method</div>
+          <div className="grid grid-cols-2 gap-2">
+            {PAY_METHODS.map((m) => (
+              <button key={m} onClick={() => setMethod(m)} className={`h-10 rounded-lg border-2 text-xs font-bold transition ${method === m ? "border-[#1E5BC6] bg-[#EAF3FF] text-[#1B3A6B]" : "border-slate-200 text-slate-500"}`}>{m}</button>
+            ))}
+          </div>
+          <button onClick={pay} disabled={paying} className="w-full h-11 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm transition disabled:opacity-60 inline-flex items-center justify-center gap-2">
+            {paying ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</> : `Pay Now $${q.total.toFixed(2)}`}
+          </button>
+        </div>
+      )}
+      {paid && (
+        <div className="mt-3 text-xs text-emerald-700 font-bold">✓ Paid via {q.paymentMethod} · {new Date(q.paidAt!).toLocaleString()}</div>
+      )}
+    </div>
+  );
+}
