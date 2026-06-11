@@ -38,15 +38,6 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
   const safeIndex = Math.min(currentIndex, stages.length - 1);
   const currentStage = stages[safeIndex];
 
-  const getIconBgClass = (done) => ({
-    backgroundColor: done ? "#dbeafe" : "#f3f4f6",
-    color: done ? "#1d4ed8" : "#9ca3af",
-  });
-
-  const getProgressLineClass = (active) => ({
-    backgroundColor: active ? "#93c5fd" : "#e5e7eb",
-  });
-
   return (
     <div style={{ maxWidth: "42rem", margin: "0 auto", padding: "1.5rem 1rem" }}>
       <style>{`
@@ -146,21 +137,41 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
           return (
             <div key={s.key} className="order-tracking-timeline-item">
               <div className="order-tracking-icon-container">
-                <div className="order-tracking-icon" style={getIconBgClass(done)}>
-                  <span role="img" aria-label={s.label} style={{ fontSize: "1rem" }}>{s.icon}</span>
+                <div
+                  className="order-tracking-icon"
+                  style={{
+                    backgroundColor: done ? "#dbeafe" : "#f3f4f6",
+                    color: done ? "#1d4ed8" : "#9ca3af",
+                  }}
+                >
+                  <span role="img" aria-label={s.label} style={{ fontSize: "1rem" }}>
+                    {s.icon}
+                  </span>
                 </div>
                 {i < stages.length - 1 && (
-                  <div className="order-tracking-line" style={getProgressLineClass(i < safeIndex)} />
+                  <div
+                    className="order-tracking-line"
+                    style={{ backgroundColor: i < safeIndex ? "#93c5fd" : "#e5e7eb" }}
+                  />
                 )}
               </div>
               <div className="order-tracking-content">
-                <p className="order-tracking-label" style={{ color: done ? "#111827" : "#9ca3af" }}>
+                <p
+                  className="order-tracking-label"
+                  style={{ color: done ? "#111827" : "#9ca3af" }}
+                >
                   {s.label}
                   {isCurrent && (
-                    <span className="order-tracking-inprogress" style={{ color: "#2563eb" }}>— in progress</span>
+                    <span className="order-tracking-inprogress" style={{ color: "#2563eb" }}>
+                      — in progress
+                    </span>
                   )}
                 </p>
-                {s.time && <p className="order-tracking-time" style={{ color: "#9ca3af" }}>{s.time}</p>}
+                {s.time && (
+                  <p className="order-tracking-time" style={{ color: "#9ca3af" }}>
+                    {s.time}
+                  </p>
+                )}
               </div>
             </div>
           );
