@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Bell, Upload } from "lucide-react";
+import { ShoppingCart, Bell, Upload, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
+import { useBranch, branchStock, branchesWithStock, getBranch } from "@/lib/branches";
 import type { Product } from "@/lib/store";
 
 type Props = {
@@ -24,9 +25,20 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
   const navigate = useNavigate();
   const add = useStore((s) => s.add);
   const user = useAuth((s) => s.user);
-  const status = STATUS[p.stock] ?? STATUS.in;
+  const selectedId = useBranch((s) => s.selectedId);
+  const setBranch = useBranch((s) => s.setBranch);
+
   const isRx = p.stock === "rx";
-  const isOut = p.stock === "out";
+  // Per-branch stock overrides the product's default flag (unless it's Rx).
+  const perBranch = selectedId && !isRx ? branchStock(p.id, selectedId) : null;
+  const effective = isRx ? "rx" : perBranch ? perBranch.status : p.stock;
+  const status = STATUS[effective] ?? STATUS.in;
+  const isOut = effective === "out";
+  const isLow = effective === "low";
+
+  // Branches that DO have stock when current branch is out
+  const alternates = isOut && !isRx ? branchesWithStock(p.id).filter((b) => b.id !== selectedId) : [];
+  const altBranch = alternates[0];
 
   function handleCTA(e: React.MouseEvent) {
     e.stopPropagation();
