@@ -1,7 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut } from "lucide-react";
+import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut, ChevronDown } from "lucide-react";
 import { useStore, cartCount } from "@/lib/store";
 import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
+import { useBranch, getBranch } from "@/lib/branches";
+import { BranchPicker } from "./branch-picker";
 import { Logo } from "./logo";
 import { useState, useRef, useEffect } from "react";
 
