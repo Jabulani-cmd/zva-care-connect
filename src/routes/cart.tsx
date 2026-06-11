@@ -210,15 +210,12 @@ function Field({ label, v, value, onChange, full, placeholder }: { label: string
 }
 
 
-type PayMethod = "ecocash" | "onemoney" | "innbucks" | "telecash" | "zipit" | "card" | "cod";
+type PayMethod = "ecocash" | "zimswitch" | "telecash" | "cod";
 const methods: { id: PayMethod; name: string; icon: string; iconBg: string; currency: string; desc: string }[] = [
-  { id: "ecocash", name: "EcoCash", icon: "📱", iconBg: "#1A7A4A", currency: "ZiG / USD", desc: "Enter your EcoCash number. An OTP will be sent to confirm." },
-  { id: "onemoney", name: "OneMoney", icon: "📱", iconBg: "#E67E22", currency: "ZiG / USD", desc: "NetOne mobile money. Enter number + PIN to confirm." },
-  { id: "innbucks", name: "InnBucks", icon: "💵", iconBg: "#1E5BC6", currency: "USD", desc: "USD digital wallet. Fast and secure." },
+  { id: "ecocash", name: "EcoCash", icon: "📱", iconBg: "#1A7A4A", currency: "USD / ZiG", desc: "Enter your EcoCash number. An OTP will be sent to confirm." },
+  { id: "zimswitch", name: "ZimSwitch", icon: "🏦", iconBg: "#1B3A6B", currency: "USD / ZiG", desc: "Instant interbank transfer via the ZimSwitch network." },
   { id: "telecash", name: "Telecash", icon: "📱", iconBg: "#7E3AC2", currency: "ZiG", desc: "Telecel mobile money payment." },
-  { id: "zipit", name: "ZIPIT", icon: "🏦", iconBg: "#1B3A6B", currency: "ZiG / USD", desc: "Instant interbank transfer via ZIPIT network." },
-  { id: "card", name: "Visa / Mastercard", icon: "💳", iconBg: "#64748B", currency: "USD", desc: "Secure international card payment." },
-  { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "ZiG / USD", desc: "Pay the driver when your order arrives." },
+  { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "USD / ZiG", desc: "Pay the driver when your order arrives." },
 ];
 
 function Payment({ selected, setSelected, next, total }: { selected: string; setSelected: (m: string) => void; next: () => void; total: number }) {
