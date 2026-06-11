@@ -128,6 +128,7 @@ function RootComponent() {
       </main>
       <BottomTabs />
       <DemoBadge />
+      <BranchPicker />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
