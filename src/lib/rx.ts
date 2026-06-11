@@ -141,6 +141,8 @@ interface RxState {
   submit: (input: Omit<RxRecord, "id" | "status" | "submittedAt" | "updatedAt" | "history">) => RxRecord;
   setStatus: (id: string, status: RxStatus, note?: string) => void;
   advance: (id: string) => void;
+  sendQuotation: (id: string, items: QuotationItem[], notes?: string) => void;
+  payQuotation: (id: string, method: string) => void;
 }
 
 let counter = 4000;
@@ -187,10 +189,48 @@ export const useRx = create<RxState>()(
         const i = RX_PROGRESS.indexOf(r.status);
         if (i >= 0 && i < RX_PROGRESS.length - 1) get().setStatus(id, RX_PROGRESS[i + 1]);
       },
+      sendQuotation: (id, items, notes) => {
+        const total = items.reduce((a, it) => a + it.qty * it.price, 0);
+        const now = new Date().toISOString();
+        set((s) => ({
+          list: s.list.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  status: "Quotation Sent",
+                  updatedAt: now,
+                  quotation: { items, notes, total, sentAt: now },
+                  history: [...r.history, { status: "Quotation Sent", at: now }],
+                }
+              : r,
+          ),
+        }));
+      },
+      payQuotation: (id, method) => {
+        const now = new Date().toISOString();
+        set((s) => ({
+          list: s.list.map((r) =>
+            r.id === id && r.quotation
+              ? {
+                  ...r,
+                  status: "Paid",
+                  updatedAt: now,
+                  quotation: { ...r.quotation, paidAt: now, paymentMethod: method },
+                  history: [
+                    ...r.history,
+                    { status: "Awaiting Payment", at: now },
+                    { status: "Paid", at: now },
+                  ],
+                }
+              : r,
+          ),
+        }));
+      },
     }),
-    { name: "kp-rx", version: 2 },
+    { name: "kp-rx", version: 3 },
   ),
 );
+
 
 export function statusColor(s: RxStatus): { bg: string; fg: string } {
   switch (s) {
