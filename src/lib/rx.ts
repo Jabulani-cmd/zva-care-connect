@@ -198,6 +198,9 @@ export function statusColor(s: RxStatus): { bg: string; fg: string } {
     case "Awaiting Pharmacist Review": return { bg: "#FFF1DB", fg: "#8B5403" };
     case "Info Requested": return { bg: "#FEF3C7", fg: "#92400E" };
     case "Approved": return { bg: "#DCFCE7", fg: "#166534" };
+    case "Quotation Sent": return { bg: "#FFE9C7", fg: "#9A5A00" };
+    case "Awaiting Payment": return { bg: "#FFF1DB", fg: "#8B5403" };
+    case "Paid": return { bg: "#DCFCE7", fg: "#166534" };
     case "Order Prepared": return { bg: "#E0E7FF", fg: "#3730A3" };
     case "Ready for Dispatch": return { bg: "#DDD6FE", fg: "#5B21B6" };
     case "Out for Delivery": return { bg: "#CFFAFE", fg: "#155E75" };
