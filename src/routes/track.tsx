@@ -54,21 +54,50 @@ function Track() {
       <div className="grid md:grid-cols-3 gap-5">
         <div className="md:col-span-2 bg-white rounded-2xl p-4 overflow-hidden">
           <div className="relative h-64 md:h-80 rounded-xl overflow-hidden bg-gradient-to-br from-[#E0EBFF] via-[#F0F6FF] to-[#E5F4EC]">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 320">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 320" preserveAspectRatio="none">
+              {/* Street grid */}
               <g stroke="#CBD5E1" strokeWidth="2" fill="none">
                 <path d="M0 80 H400" /><path d="M0 160 H400" /><path d="M0 240 H400" />
                 <path d="M80 0 V320" /><path d="M200 0 V320" /><path d="M320 0 V320" />
               </g>
-              <path d="M40 280 Q 120 240, 200 200 T 360 60" stroke="#1E5BC6" strokeWidth="3" strokeDasharray="6 6" fill="none" />
+              {/* Faded full route */}
+              <path d="M40 280 Q 120 240, 200 200 T 360 60" stroke="#CBD5E1" strokeWidth="4" strokeDasharray="6 6" fill="none" strokeLinecap="round" />
+              {/* Animated traveled path */}
+              <motion.path
+                d="M40 280 Q 120 240, 200 200 T 360 60"
+                stroke="#1E5BC6"
+                strokeWidth="4"
+                fill="none"
+                strokeLinecap="round"
+                pathLength={1}
+                initial={false}
+                animate={{ strokeDashoffset: 1 - progress }}
+                style={{ strokeDasharray: 1 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+              />
+              {/* Branch marker */}
+              <g>
+                <circle cx="40" cy="280" r="10" fill="#1A7A4A" />
+                <circle cx="40" cy="280" r="16" fill="#1A7A4A" opacity="0.25">
+                  <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite" />
+                </circle>
+              </g>
             </svg>
+            <div className="absolute" style={{ left: "6%", bottom: "8%" }}>
+              <div className="text-[10px] font-bold text-[#1A7A4A] bg-white rounded px-1.5 py-0.5 shadow">🏪 Branch</div>
+            </div>
             <div className="absolute" style={{ top: "12%", right: "8%" }}>
-              <div className="text-3xl">📍</div>
+              <div className="text-3xl drop-shadow">📍</div>
               <div className="text-[10px] font-bold text-[#C0392B] bg-white rounded px-1.5 py-0.5 shadow">Home</div>
             </div>
-            <motion.div className="absolute" animate={{ left: `${10 + progress * 75}%`, top: `${82 - progress * 65}%` }} transition={{ duration: 1.2, ease: "easeInOut" }}>
-              <div className="text-3xl">🚗</div>
-              <div className="text-[10px] font-bold text-[#1E5BC6] bg-white rounded px-1.5 py-0.5 shadow">{order.driverName ?? "Awaiting driver"}</div>
+            <motion.div className="absolute -translate-x-1/2 -translate-y-1/2" animate={{ left: `${10 + progress * 80}%`, top: `${88 - progress * 70}%` }} transition={{ duration: 1.2, ease: "easeInOut" }}>
+              <motion.div className="text-3xl" animate={{ y: [0, -3, 0] }} transition={{ duration: 1.2, repeat: Infinity }}>🚗</motion.div>
+              <div className="text-[10px] font-bold text-[#1E5BC6] bg-white rounded px-1.5 py-0.5 shadow whitespace-nowrap">{order.driverName ?? "Awaiting driver"}</div>
             </motion.div>
+            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur rounded-lg px-2.5 py-1 text-[11px] font-bold text-[#1B3A6B] shadow">
+              {Math.round(progress * 100)}% complete
+            </div>
           </div>
           <div className="flex gap-2 mt-3">
             <button onClick={() => { advance(order.id); toast.success("Status advanced"); }} disabled={delivered} className="flex-1 h-11 rounded-full bg-[#1B3A6B] text-white font-bold text-sm disabled:opacity-50">▶ Simulate Next Step</button>
@@ -76,19 +105,34 @@ function Track() {
         </div>
 
         <div className="bg-white rounded-2xl p-5">
-          <div className="font-black text-[#1B3A6B] mb-3">Delivery Progress</div>
-          <ol className="space-y-3">
+          <div className="font-black text-[#1B3A6B] mb-3">Delivery Timeline</div>
+          <ol className="relative">
             {ORDER_FLOW.map((s, i) => {
               const done = i < stepIdx;
               const current = i === stepIdx;
+              const event = order.history.find((h) => h.status === s);
+              const ts = event ? new Date(event.at) : null;
+              const isLast = i === ORDER_FLOW.length - 1;
               return (
-                <li key={s} className="flex items-start gap-3">
-                  <div className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-sm font-black ${done ? "bg-[#1A7A4A] text-white" : current ? "bg-[#1E5BC6] text-white animate-pulse" : "bg-slate-200 text-slate-400"}`}>
+                <li key={s} className="flex items-start gap-3 pb-4 relative">
+                  {!isLast && (
+                    <span
+                      className={`absolute left-4 top-8 -translate-x-1/2 w-0.5 h-full ${done ? "bg-[#1A7A4A]" : "bg-slate-200"}`}
+                      aria-hidden
+                    />
+                  )}
+                  <div className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-sm font-black z-10 ${done ? "bg-[#1A7A4A] text-white" : current ? "bg-[#1E5BC6] text-white animate-pulse ring-4 ring-[#1E5BC6]/20" : "bg-slate-200 text-slate-400"}`}>
                     {done ? <Check className="h-4 w-4" strokeWidth={3} /> : i + 1}
                   </div>
-                  <div className="pt-1">
+                  <div className="pt-1 flex-1">
                     <div className={`text-sm font-bold ${current ? "text-[#1B3A6B]" : done ? "text-foreground" : "text-muted-foreground"}`}>{STEP_META[s].e} {s}</div>
-                    {current && <div className="text-xs text-[#1E5BC6] font-semibold">In progress…</div>}
+                    {ts && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {ts.toLocaleDateString([], { month: "short", day: "numeric" })} · {ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    )}
+                    {current && <div className="text-xs text-[#1E5BC6] font-semibold mt-0.5">In progress…</div>}
+                    {!done && !current && <div className="text-[11px] text-slate-400 mt-0.5">Pending</div>}
                   </div>
                 </li>
               );
