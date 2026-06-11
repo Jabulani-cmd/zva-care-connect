@@ -10,6 +10,9 @@ export const RX_STATUSES = [
   "Awaiting Pharmacist Review",
   "Info Requested",
   "Approved",
+  "Quotation Sent",
+  "Awaiting Payment",
+  "Paid",
   "Order Prepared",
   "Ready for Dispatch",
   "Out for Delivery",
@@ -18,16 +21,29 @@ export const RX_STATUSES = [
 ] as const;
 export type RxStatus = (typeof RX_STATUSES)[number];
 
-// Statuses that flow forward through fulfillment
+// Forward progress timeline (skips Info Requested / Rejected branches)
 export const RX_PROGRESS: RxStatus[] = [
   "Received",
   "Awaiting Pharmacist Review",
   "Approved",
+  "Quotation Sent",
+  "Awaiting Payment",
+  "Paid",
   "Order Prepared",
   "Ready for Dispatch",
   "Out for Delivery",
   "Delivered",
 ];
+
+export interface QuotationItem { name: string; qty: number; price: number }
+export interface Quotation {
+  items: QuotationItem[];
+  notes?: string;
+  total: number;
+  sentAt: string;
+  paidAt?: string;
+  paymentMethod?: string;
+}
 
 export interface RxRecord {
   id: string;
@@ -46,6 +62,8 @@ export interface RxRecord {
   updatedAt: string;             // ISO
   history: { status: RxStatus; at: string; note?: string }[];
   reviewerNote?: string;
+  quotation?: Quotation;
+  branchId?: string;
 }
 
 // ── Placeholder prescription images (SVG data URLs, look like Rx slips) ─────
@@ -123,6 +141,8 @@ interface RxState {
   submit: (input: Omit<RxRecord, "id" | "status" | "submittedAt" | "updatedAt" | "history">) => RxRecord;
   setStatus: (id: string, status: RxStatus, note?: string) => void;
   advance: (id: string) => void;
+  sendQuotation: (id: string, items: QuotationItem[], notes?: string) => void;
+  payQuotation: (id: string, method: string) => void;
 }
 
 let counter = 4000;
@@ -169,10 +189,48 @@ export const useRx = create<RxState>()(
         const i = RX_PROGRESS.indexOf(r.status);
         if (i >= 0 && i < RX_PROGRESS.length - 1) get().setStatus(id, RX_PROGRESS[i + 1]);
       },
+      sendQuotation: (id, items, notes) => {
+        const total = items.reduce((a, it) => a + it.qty * it.price, 0);
+        const now = new Date().toISOString();
+        set((s) => ({
+          list: s.list.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  status: "Quotation Sent",
+                  updatedAt: now,
+                  quotation: { items, notes, total, sentAt: now },
+                  history: [...r.history, { status: "Quotation Sent", at: now }],
+                }
+              : r,
+          ),
+        }));
+      },
+      payQuotation: (id, method) => {
+        const now = new Date().toISOString();
+        set((s) => ({
+          list: s.list.map((r) =>
+            r.id === id && r.quotation
+              ? {
+                  ...r,
+                  status: "Paid",
+                  updatedAt: now,
+                  quotation: { ...r.quotation, paidAt: now, paymentMethod: method },
+                  history: [
+                    ...r.history,
+                    { status: "Awaiting Payment", at: now },
+                    { status: "Paid", at: now },
+                  ],
+                }
+              : r,
+          ),
+        }));
+      },
     }),
-    { name: "kp-rx", version: 2 },
+    { name: "kp-rx", version: 3 },
   ),
 );
+
 
 export function statusColor(s: RxStatus): { bg: string; fg: string } {
   switch (s) {
@@ -180,6 +238,9 @@ export function statusColor(s: RxStatus): { bg: string; fg: string } {
     case "Awaiting Pharmacist Review": return { bg: "#FFF1DB", fg: "#8B5403" };
     case "Info Requested": return { bg: "#FEF3C7", fg: "#92400E" };
     case "Approved": return { bg: "#DCFCE7", fg: "#166534" };
+    case "Quotation Sent": return { bg: "#FFE9C7", fg: "#9A5A00" };
+    case "Awaiting Payment": return { bg: "#FFF1DB", fg: "#8B5403" };
+    case "Paid": return { bg: "#DCFCE7", fg: "#166534" };
     case "Order Prepared": return { bg: "#E0E7FF", fg: "#3730A3" };
     case "Ready for Dispatch": return { bg: "#DDD6FE", fg: "#5B21B6" };
     case "Out for Delivery": return { bg: "#CFFAFE", fg: "#155E75" };

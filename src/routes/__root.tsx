@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TopNav, MobileHeader, BottomTabs, DemoBadge } from "@/components/nav";
+import { BranchPicker } from "@/components/branch-picker";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -127,6 +128,7 @@ function RootComponent() {
       </main>
       <BottomTabs />
       <DemoBadge />
+      <BranchPicker />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );

@@ -210,15 +210,12 @@ function Field({ label, v, value, onChange, full, placeholder }: { label: string
 }
 
 
-type PayMethod = "ecocash" | "onemoney" | "innbucks" | "telecash" | "zipit" | "card" | "cod";
+type PayMethod = "ecocash" | "zimswitch" | "telecash" | "cod";
 const methods: { id: PayMethod; name: string; icon: string; iconBg: string; currency: string; desc: string }[] = [
-  { id: "ecocash", name: "EcoCash", icon: "📱", iconBg: "#1A7A4A", currency: "ZiG / USD", desc: "Enter your EcoCash number. An OTP will be sent to confirm." },
-  { id: "onemoney", name: "OneMoney", icon: "📱", iconBg: "#E67E22", currency: "ZiG / USD", desc: "NetOne mobile money. Enter number + PIN to confirm." },
-  { id: "innbucks", name: "InnBucks", icon: "💵", iconBg: "#1E5BC6", currency: "USD", desc: "USD digital wallet. Fast and secure." },
+  { id: "ecocash", name: "EcoCash", icon: "📱", iconBg: "#1A7A4A", currency: "USD / ZiG", desc: "Enter your EcoCash number. An OTP will be sent to confirm." },
+  { id: "zimswitch", name: "ZimSwitch", icon: "🏦", iconBg: "#1B3A6B", currency: "USD / ZiG", desc: "Instant interbank transfer via the ZimSwitch network." },
   { id: "telecash", name: "Telecash", icon: "📱", iconBg: "#7E3AC2", currency: "ZiG", desc: "Telecel mobile money payment." },
-  { id: "zipit", name: "ZIPIT", icon: "🏦", iconBg: "#1B3A6B", currency: "ZiG / USD", desc: "Instant interbank transfer via ZIPIT network." },
-  { id: "card", name: "Visa / Mastercard", icon: "💳", iconBg: "#64748B", currency: "USD", desc: "Secure international card payment." },
-  { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "ZiG / USD", desc: "Pay the driver when your order arrives." },
+  { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "USD / ZiG", desc: "Pay the driver when your order arrives." },
 ];
 
 function Payment({ selected, setSelected, next, total }: { selected: string; setSelected: (m: string) => void; next: () => void; total: number }) {
@@ -256,7 +253,7 @@ function Payment({ selected, setSelected, next, total }: { selected: string; set
 function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSuccess: () => void; total: number }) {
   const amt = `$${total.toFixed(2)}`;
   const [phase, setPhase] = useState<"form" | "otp" | "processing" | "success">("form");
-  const isMobile = ["ecocash", "onemoney", "telecash", "innbucks"].includes(method.id);
+  const isMobile = ["ecocash", "telecash"].includes(method.id);
 
   function submit() {
     if (isMobile && phase === "form") return setPhase("otp");
@@ -295,22 +292,13 @@ function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSu
           <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold">Verify & Pay {amt}</button>
         </>
       )}
-      {phase === "form" && method.id === "zipit" && (
+      {phase === "form" && method.id === "zimswitch" && (
         <>
           <label className="block"><span className="text-xs font-bold text-[#1B3A6B]">Bank</span>
             <select className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm"><option>CBZ Bank</option><option>Stanbic</option><option>FBC</option><option>Steward Bank</option></select>
           </label>
-          <Field label="Account Number" placeholder="00112233445" />
-          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold">Confirm Transfer</button>
-        </>
-      )}
-      {phase === "form" && method.id === "card" && (
-        <>
-          <CardNumber />
-          <div className="grid grid-cols-2 gap-2"><Field label="Expiry" placeholder="MM/YY" /><Field label="CVV" placeholder="123" /></div>
-          <Field label="Cardholder Name" v="Chipo Moyo" />
-          <Field label="Billing Address" v="14 Samora Machel Ave, Harare" />
-          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Pay Securely {amt}</button>
+          <Field label="Card / Account Number" placeholder="00112233445" />
+          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Confirm Transfer {amt}</button>
         </>
       )}
       {phase === "form" && method.id === "cod" && (

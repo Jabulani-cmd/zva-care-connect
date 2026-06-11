@@ -1,9 +1,31 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut } from "lucide-react";
+import { Home, ShoppingCart, MapPin, User, LayoutGrid, Store, Search, LogOut, ChevronDown } from "lucide-react";
 import { useStore, cartCount } from "@/lib/store";
 import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
+import { useBranch, getBranch } from "@/lib/branches";
+import { BranchPicker } from "./branch-picker";
 import { Logo } from "./logo";
 import { useState, useRef, useEffect } from "react";
+
+function BranchChip({ compact = false }: { compact?: boolean }) {
+  const id = useBranch((s) => s.selectedId);
+  const branch = getBranch(id);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border border-[#1E5BC6]/20 bg-[#EAF3FF] hover:bg-[#1E5BC6]/15 text-[#1B3A6B] font-bold transition ${compact ? "px-2 h-8 text-[11px]" : "px-3 h-9 text-xs"}`}
+        title={branch ? branch.address : "Choose your branch"}
+      >
+        <MapPin className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+        <span className="max-w-[10rem] truncate">{branch ? branch.area : "Choose branch"}</span>
+        <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+      {open && <BranchPicker open onClose={() => setOpen(false)} />}
+    </>
+  );
+}
 
 const PUBLIC_TABS = [
   { to: "/", label: "Home", icon: Home },
@@ -95,6 +117,7 @@ export function TopNav() {
         <Link to="/" className="shrink-0">
           <Logo />
         </Link>
+        <BranchChip />
         <div className="flex-1 max-w-2xl relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <input
@@ -140,7 +163,7 @@ export function MobileHeader() {
   const count = useStore((s) => cartCount(s.cart));
   return (
     <header className="md:hidden sticky top-0 z-40 bg-white border-b border-border shadow-sm">
-      <div className="px-3 h-16 flex items-center gap-2">
+      <div className="px-3 pt-2 pb-1 flex items-center gap-2">
         <Link to="/" className="shrink-0">
           <Logo compact />
         </Link>
@@ -159,6 +182,9 @@ export function MobileHeader() {
             </span>
           )}
         </Link>
+      </div>
+      <div className="px-3 pb-2 flex">
+        <BranchChip compact />
       </div>
     </header>
   );

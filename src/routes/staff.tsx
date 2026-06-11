@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ORDERS_BY_STATUS, PHARMACISTS, ASSISTANTS, PRODUCTS_ALL } from "@/lib/demo-data";
-import { FileText, Package, Truck, AlertTriangle, MessageCircle, Star, Check, X, HelpCircle, ChevronRight, ZoomIn, Search } from "lucide-react";
+import { FileText, Package, Truck, AlertTriangle, MessageCircle, Star, Check, X, HelpCircle, ChevronRight, ZoomIn, Search, Receipt, Plus, Trash2 } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
-import { useRx, statusColor, type RxRecord, type RxStatus } from "@/lib/rx";
+import { useRx, statusColor, type RxRecord, type RxStatus, type QuotationItem } from "@/lib/rx";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/staff")({
@@ -246,7 +246,7 @@ function RxManagement() {
             Select a prescription to review.
           </div>
         ) : (
-          <RxDetailPanel key={rec.id} rec={rec} onAction={(status, note) => { setStatus(rec.id, status, note); toast.success(`Prescription ${status.toLowerCase()}.`); }} />
+          <RxDetailPanel key={rec.id} rec={rec} />
         )}
       </div>
     </div>
@@ -259,11 +259,22 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatus, note?: string) => void }) {
+function RxDetailPanel({ rec }: { rec: RxRecord }) {
+  const setStatus = useRx((s) => s.setStatus);
+  const sendQuotation = useRx((s) => s.sendQuotation);
   const [zoom, setZoom] = useState(false);
-  const [mode, setMode] = useState<null | "info" | "reject">(null);
+  const [mode, setMode] = useState<null | "info" | "reject" | "quote">(null);
   const [note, setNote] = useState("");
   const c = statusColor(rec.status);
+
+  function act(status: RxStatus, n?: string) {
+    setStatus(rec.id, status, n);
+    toast.success(`Prescription ${status.toLowerCase()}.`);
+  }
+
+  const canApprove = !["Approved","Quotation Sent","Awaiting Payment","Paid","Order Prepared","Ready for Dispatch","Out for Delivery","Delivered","Rejected"].includes(rec.status);
+  const canQuote = ["Approved","Awaiting Pharmacist Review","Received"].includes(rec.status) && !rec.quotation;
+  const canAdvance = ["Paid","Order Prepared","Ready for Dispatch","Out for Delivery"].includes(rec.status);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -307,6 +318,22 @@ function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatu
               <div className="text-amber-900 mt-1">{rec.reviewerNote}</div>
             </div>
           )}
+          {rec.quotation && (
+            <div className="bg-[#EAF3FF] border border-[#1E5BC6]/20 rounded-lg p-3 text-sm">
+              <div className="text-[10px] font-bold uppercase text-[#1E5BC6] tracking-widest">Quotation</div>
+              <ul className="mt-2 space-y-1 text-[#1B3A6B]">
+                {rec.quotation.items.map((it, i) => (
+                  <li key={i} className="flex justify-between"><span>{it.name} ×{it.qty}</span><span className="font-bold">${(it.qty * it.price).toFixed(2)}</span></li>
+                ))}
+              </ul>
+              <div className="border-t border-[#1E5BC6]/20 mt-2 pt-2 flex justify-between font-black text-[#1B3A6B]">
+                <span>Total</span><span>${rec.quotation.total.toFixed(2)}</span>
+              </div>
+              {rec.quotation.paidAt && (
+                <div className="mt-2 text-[11px] font-bold text-emerald-700">✓ Paid via {rec.quotation.paymentMethod}</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -314,18 +341,26 @@ function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatu
       <div className="border-t border-slate-100 p-4 bg-slate-50">
         {!mode && rec.status !== "Delivered" && rec.status !== "Rejected" && (
           <div className="grid grid-cols-3 gap-2">
-            <ActionBtn intent="ok" icon={Check} label="Approve" onClick={() => onAction("Approved")} disabled={["Approved","Order Prepared","Ready for Dispatch","Out for Delivery"].includes(rec.status)} />
+            <ActionBtn intent="ok" icon={Check} label="Approve" onClick={() => act("Approved")} disabled={!canApprove} />
             <ActionBtn intent="warn" icon={HelpCircle} label="Request Info" onClick={() => { setMode("info"); setNote(""); }} />
             <ActionBtn intent="danger" icon={X} label="Reject" onClick={() => { setMode("reject"); setNote(""); }} />
-            {["Approved","Order Prepared","Ready for Dispatch"].includes(rec.status) && (
-              <button onClick={() => onAction(nextStatus(rec.status))} className="col-span-3 mt-1 bg-[#1B3A6B] hover:bg-[#1E5BC6] text-white font-bold text-sm py-2.5 rounded-full transition inline-flex items-center justify-center gap-2">
+            {canQuote && (
+              <button onClick={() => setMode("quote")} className="col-span-3 mt-1 bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm py-2.5 rounded-full transition inline-flex items-center justify-center gap-2">
+                <Receipt className="h-4 w-4" /> Enter Quotation
+              </button>
+            )}
+            {canAdvance && (
+              <button onClick={() => act(nextStatus(rec.status))} className="col-span-3 mt-1 bg-[#1B3A6B] hover:bg-[#1E5BC6] text-white font-bold text-sm py-2.5 rounded-full transition inline-flex items-center justify-center gap-2">
                 Advance to "{nextStatus(rec.status)}" <ChevronRight className="h-4 w-4" />
               </button>
+            )}
+            {rec.status === "Quotation Sent" && (
+              <div className="col-span-3 mt-1 text-center text-xs text-slate-500 italic">Waiting for customer to pay the quotation…</div>
             )}
           </div>
         )}
 
-        {mode && (
+        {(mode === "info" || mode === "reject") && (
           <div className="space-y-2">
             <div className="text-xs font-bold text-[#1B3A6B]">{mode === "info" ? "Message to customer (request more info)" : "Reason for rejection"}</div>
             <textarea
@@ -340,7 +375,7 @@ function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatu
               <button
                 onClick={() => {
                   if (!note.trim()) return toast.error("Please add a note.");
-                  onAction(mode === "info" ? "Info Requested" : "Rejected", note.trim());
+                  act(mode === "info" ? "Info Requested" : "Rejected", note.trim());
                   setMode(null);
                 }}
                 className={`flex-1 h-10 rounded-full text-white font-bold text-sm ${mode === "info" ? "bg-amber-500 hover:bg-amber-600" : "bg-[#C0392B] hover:bg-red-700"}`}
@@ -349,6 +384,18 @@ function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatu
               </button>
             </div>
           </div>
+        )}
+
+        {mode === "quote" && (
+          <QuotationForm
+            initialMedication={rec.medication}
+            onCancel={() => setMode(null)}
+            onSend={(items, notes) => {
+              sendQuotation(rec.id, items, notes);
+              toast.success("Quotation sent to customer.");
+              setMode(null);
+            }}
+          />
         )}
       </div>
 
@@ -364,8 +411,56 @@ function RxDetailPanel({ rec, onAction }: { rec: RxRecord; onAction: (s: RxStatu
   );
 }
 
+function QuotationForm({ initialMedication, onCancel, onSend }: { initialMedication?: string; onCancel: () => void; onSend: (items: QuotationItem[], notes?: string) => void }) {
+  const [items, setItems] = useState<QuotationItem[]>([
+    { name: initialMedication ?? "", qty: 1, price: 0 },
+  ]);
+  const [notes, setNotes] = useState("");
+  const total = items.reduce((a, it) => a + it.qty * it.price, 0);
+
+  function update(i: number, patch: Partial<QuotationItem>) {
+    setItems((arr) => arr.map((it, idx) => idx === i ? { ...it, ...patch } : it));
+  }
+  function remove(i: number) {
+    setItems((arr) => arr.filter((_, idx) => idx !== i));
+  }
+  function add() {
+    setItems((arr) => [...arr, { name: "", qty: 1, price: 0 }]);
+  }
+  function send() {
+    const cleaned = items.filter((it) => it.name.trim() && it.price > 0 && it.qty > 0);
+    if (cleaned.length === 0) return toast.error("Add at least one item with a price.");
+    onSend(cleaned, notes.trim() || undefined);
+  }
+
+  return (
+    <div className="space-y-3 bg-white rounded-xl p-3 border border-slate-200">
+      <div className="text-sm font-black text-[#1B3A6B] flex items-center gap-2"><Receipt className="h-4 w-4" /> Quotation</div>
+      <div className="space-y-2">
+        {items.map((it, i) => (
+          <div key={i} className="grid grid-cols-12 gap-2 items-center">
+            <input value={it.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="Medication / item" className="col-span-6 h-10 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-[#1E5BC6]" />
+            <input type="number" min={1} value={it.qty} onChange={(e) => update(i, { qty: Math.max(1, parseInt(e.target.value || "1")) })} className="col-span-2 h-10 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-[#1E5BC6] text-center" />
+            <input type="number" min={0} step={0.01} value={it.price} onChange={(e) => update(i, { price: parseFloat(e.target.value || "0") })} placeholder="$" className="col-span-3 h-10 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-[#1E5BC6]" />
+            <button onClick={() => remove(i)} disabled={items.length === 1} className="col-span-1 h-10 flex items-center justify-center text-red-500 disabled:opacity-30"><Trash2 className="h-4 w-4" /></button>
+          </div>
+        ))}
+      </div>
+      <button onClick={add} className="text-xs font-bold text-[#1E5BC6] inline-flex items-center gap-1"><Plus className="h-3 w-3" /> Add item</button>
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Notes for customer (optional)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#1E5BC6] resize-none" />
+      <div className="flex justify-between items-center font-black text-[#1B3A6B] border-t border-slate-100 pt-2">
+        <span>Total</span><span className="text-lg">${total.toFixed(2)}</span>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={onCancel} className="flex-1 h-10 rounded-full bg-slate-200 hover:bg-slate-300 text-[#1B3A6B] font-bold text-sm">Cancel</button>
+        <button onClick={send} className="flex-1 h-10 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm">Send Quotation</button>
+      </div>
+    </div>
+  );
+}
+
 function nextStatus(s: RxStatus): RxStatus {
-  const order: RxStatus[] = ["Approved", "Order Prepared", "Ready for Dispatch", "Out for Delivery", "Delivered"];
+  const order: RxStatus[] = ["Paid", "Order Prepared", "Ready for Dispatch", "Out for Delivery", "Delivered"];
   const i = order.indexOf(s);
   return i >= 0 && i < order.length - 1 ? order[i + 1] : "Delivered";
 }

@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Bell, Upload } from "lucide-react";
+import { ShoppingCart, Bell, Upload, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
+import { useBranch, branchStock, branchesWithStock, getBranch } from "@/lib/branches";
 import type { Product } from "@/lib/store";
 
 type Props = {
@@ -24,9 +25,20 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
   const navigate = useNavigate();
   const add = useStore((s) => s.add);
   const user = useAuth((s) => s.user);
-  const status = STATUS[p.stock] ?? STATUS.in;
+  const selectedId = useBranch((s) => s.selectedId);
+  const setBranch = useBranch((s) => s.setBranch);
+
   const isRx = p.stock === "rx";
-  const isOut = p.stock === "out";
+  // Per-branch stock overrides the product's default flag (unless it's Rx).
+  const perBranch = selectedId && !isRx ? branchStock(p.id, selectedId) : null;
+  const effective = isRx ? "rx" : perBranch ? perBranch.status : p.stock;
+  const status = STATUS[effective] ?? STATUS.in;
+  const isOut = effective === "out";
+  const isLow = effective === "low";
+
+  // Branches that DO have stock when current branch is out
+  const alternates = isOut && !isRx ? branchesWithStock(p.id).filter((b) => b.id !== selectedId) : [];
+  const altBranch = alternates[0];
 
   function handleCTA(e: React.MouseEvent) {
     e.stopPropagation();
@@ -80,9 +92,9 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
         >
           {p.emoji}
         </div>
-        {p.stock === "low" && p.stockCount !== undefined && (
+        {isLow && perBranch && (
           <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5 shadow">
-            Only {p.stockCount} left
+            Only {perBranch.count} left
           </div>
         )}
         {isOut && (
@@ -111,7 +123,22 @@ export function ProductCard({ p, i = 0, imageUrl }: Props) {
           <span className="text-slate-400 text-xs">USD</span>
         </div>
 
-        {isOut ? (
+        {isOut && altBranch ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setBranch(altBranch.id);
+              toast.success(`Switched to ${altBranch.name} — ${p.name} is in stock here.`);
+            }}
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[11px] font-bold
+                       bg-[#EAF3FF] text-[#1B3A6B] border-2 border-[#1E5BC6]/30
+                       hover:bg-[#1E5BC6] hover:text-white hover:border-[#1E5BC6]
+                       active:scale-95 transition-all duration-150 focus:outline-none"
+            title={`Available at ${altBranch.name}`}
+          >
+            <MapPin size={12} /> Available at {altBranch.area}
+          </button>
+        ) : isOut ? (
           <button
             onClick={handleNotify}
             className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold
