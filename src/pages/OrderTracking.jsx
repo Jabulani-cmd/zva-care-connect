@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 
 const stages = [
@@ -18,26 +20,21 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
     setCurrentIndex((i) => Math.min(i + 1, stages.length - 1));
   };
 
-  // Driver marker position along the route (branch -> customer)
   let driverPos = null;
   let etaText = "Preparing your order";
 
   if (currentIndex === 6) {
-    // Out for delivery – driver en route
     const progress = 0.55;
     driverPos = { x: 40 + (600 - 40) * progress, y: 120 + (60 - 120) * progress };
     etaText = "Driver is about 8 minutes away";
   } else if (currentIndex === 7) {
-    // Delivered
     driverPos = { x: 600, y: 60 };
     etaText = "Delivered";
   } else if (currentIndex >= 5) {
-    // Dispatched – driver at branch
     driverPos = { x: 40, y: 120 };
     etaText = "Driver is collecting your order";
   }
 
-  // Safety guard: if currentIndex is somehow out of bounds, fallback to last stage
   const safeIndex = Math.min(currentIndex, stages.length - 1);
   const currentStage = stages[safeIndex];
 
@@ -57,7 +54,6 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
         </button>
       </div>
 
-      {/* Map placeholder */}
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <svg viewBox="0 0 640 160" className="w-full h-auto" role="img" aria-label="Map showing driver route from branch to customer">
           <line x1="40" y1="120" x2="600" y2="60" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="6 6" />
@@ -70,7 +66,6 @@ export default function OrderTracking({ orderNumber = "KP-20413" }) {
         <p className="text-sm text-gray-500 text-center mt-2">{etaText}</p>
       </div>
 
-      {/* Timeline */}
       <div>
         {stages.map((s, i) => {
           const done = i <= safeIndex;
