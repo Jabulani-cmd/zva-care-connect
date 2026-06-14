@@ -7,10 +7,22 @@ export function AuthGuard({ role, children }: { role: Role; children: ReactNode 
   const navigate = useNavigate();
   const location = useLocation();
   const [ready, setReady] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const didRedirect = useRef(false);
 
+  // Wait for zustand persist to finish hydrating from localStorage before deciding
   useEffect(() => {
-    // Don't run the guard while we're already on the login page (prevents redirect loop)
+    const anyStore = useAuth as unknown as { persist?: { hasHydrated: () => boolean; onFinishHydration: (cb: () => void) => () => void } };
+    if (anyStore.persist?.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    const unsub = anyStore.persist?.onFinishHydration(() => setHydrated(true));
+    return () => { unsub?.(); };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (location.pathname.startsWith("/login")) return;
 
     if (!user) {
@@ -28,7 +40,7 @@ export function AuthGuard({ role, children }: { role: Role; children: ReactNode 
     } else {
       setReady(true);
     }
-  }, [user, role, navigate, location.pathname]);
+  }, [hydrated, user, role, navigate, location.pathname]);
 
   if (!ready) {
     return (
