@@ -6,10 +6,12 @@ import { Logo } from "@/components/logo";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign In — Kings Pharmacy" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    role: (s.role as Role) || "customer",
-    redirect: typeof s.redirect === "string" ? (s.redirect as string) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>) => {
+    let redirect = typeof s.redirect === "string" ? (s.redirect as string) : undefined;
+    // Sanitize: never bounce back to /login (prevents recursive redirect params)
+    if (redirect && /\/login(\?|$)/.test(redirect)) redirect = undefined;
+    return { role: (s.role as Role) || "customer", redirect };
+  },
   component: Login,
 });
 
