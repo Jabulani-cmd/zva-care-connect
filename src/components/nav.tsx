@@ -1,29 +1,71 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, ShoppingCart, MapPin, User, Store, Search, LogOut, ChevronDown, Truck, Building2 } from "lucide-react";
+import { Home, ShoppingCart, MapPin, User, Store, Search, LogOut, ChevronDown, Truck, Building2, Check, Phone, Clock } from "lucide-react";
 import { useStore, cartCount } from "@/lib/store";
 import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
-import { useBranch, getBranch } from "@/lib/branches";
-import { BranchPicker } from "./branch-picker";
+import { useBranch, getBranch, BRANCHES } from "@/lib/branches";
 import { Logo } from "./logo";
 import { useState, useRef, useEffect } from "react";
 
 function BranchChip({ compact = false }: { compact?: boolean }) {
   const id = useBranch((s) => s.selectedId);
+  const setBranch = useBranch((s) => s.setBranch);
   const branch = getBranch(id);
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
   return (
-    <>
+    <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen((v) => !v)}
         className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border border-[#1E5BC6]/20 bg-[#EAF3FF] hover:bg-[#1E5BC6]/15 text-[#1B3A6B] font-bold transition ${compact ? "px-2 h-8 text-[11px]" : "px-3 h-9 text-xs"}`}
         title={branch ? branch.address : "Choose your branch"}
       >
         <MapPin className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
-        <span className="max-w-[10rem] truncate">{branch ? branch.area : "Choose branch"}</span>
-        <ChevronDown className="h-3 w-3 opacity-70" />
+        <span className="max-w-[10rem] truncate">{branch ? branch.name.replace("Kings Pharmacy ", "") : "Choose branch"}</span>
+        <ChevronDown className={`h-3 w-3 opacity-70 transition ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <BranchPicker open onClose={() => setOpen(false)} />}
-    </>
+      {open && (
+        <div className={`absolute z-50 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden ${compact ? "left-0" : "right-0"}`}>
+          <div className="px-4 py-3 bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] text-white">
+            <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">Kings Pharmacy · Bulawayo</div>
+            <div className="text-sm font-black mt-0.5">Choose your branch</div>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
+            {BRANCHES.map((b) => {
+              const active = b.id === id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => { setBranch(b.id); setOpen(false); }}
+                  className={`w-full text-left px-3 py-2.5 flex items-start gap-2.5 hover:bg-slate-50 transition ${active ? "bg-[#EAF3FF]" : ""}`}
+                >
+                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${active ? "bg-[#1E5BC6] text-white" : "bg-[#EAF3FF] text-[#1E5BC6]"}`}>
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-[13px] text-[#1B3A6B]">{b.name}</div>
+                    <div className="text-[11px] text-slate-500 truncate">{b.address}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5 flex flex-wrap gap-x-2">
+                      <span className="inline-flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> {b.phone}</span>
+                      <span className="inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" /> {b.hours}</span>
+                    </div>
+                  </div>
+                  {active && <Check className="h-4 w-4 text-[#1A7A4A] shrink-0 mt-1" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
