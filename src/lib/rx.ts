@@ -228,6 +228,14 @@ export const useRx = create<RxState>()(
           ),
         }));
       },
+      setDeliveryTimeSlot: (id, slot) =>
+        set((s) => ({
+          list: s.list.map((r) =>
+            r.id === id
+              ? { ...r, deliveryTimeSlot: slot, updatedAt: new Date().toISOString() }
+              : r,
+          ),
+        })),
     }),
     { name: "kp-rx", version: 3 },
   ),
