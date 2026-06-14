@@ -321,9 +321,13 @@ function Detail({ rec, onBack }: { rec: RxRecord; onBack: () => void }) {
         <Detail2 k="Patient" v={rec.patientName} />
         <Detail2 k="Phone" v={rec.contactPhone} />
         <Detail2 k="Address" v={rec.deliveryAddress} />
+        {rec.branchId && <Detail2 k="Branch" v={getBranch(rec.branchId)?.name ?? rec.branchId} />}
+        {rec.deliveryTimeSlot && <Detail2 k="Delivery slot" v={rec.deliveryTimeSlot} />}
         {rec.doctor && <Detail2 k="Doctor" v={rec.doctor} />}
         {rec.notes && <Detail2 k="Notes" v={rec.notes} />}
       </div>
+
+      {rec.quotation?.paidAt && !rec.deliveryTimeSlot && <DeliverySlotPicker rxId={rec.id} />}
 
       <AnimatePresence>
         {zoom && (
