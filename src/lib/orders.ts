@@ -42,8 +42,10 @@ export interface LiveOrder {
 const NOW = () => new Date().toISOString();
 
 const seedOrders = (): LiveOrder[] => {
-  const p1 = PRODUCTS_ALL.find((p) => p.id === "kp-001")!;
-  const p2 = PRODUCTS_ALL.find((p) => p.id === "kp-070")!;
+  const p1 = PRODUCTS_ALL.find((p) => p.id === "kp-001");
+  const p2 = PRODUCTS_ALL.find((p) => p.id === "kp-070");
+  const driver = DRIVERS[0];
+  if (!p1 || !p2 || !driver) return [];
   return [
     {
       id: "KP-LIVE-1042",
@@ -61,8 +63,8 @@ const seedOrders = (): LiveOrder[] => {
       total: p1.price * 2 + p2.price + 2.5,
       status: "Out for Delivery",
       placedAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-      driverId: DRIVERS[0].id,
-      driverName: DRIVERS[0].name,
+      driverId: driver.id,
+      driverName: driver.name,
       history: [
         { status: "Order Confirmed", at: new Date(Date.now() - 1000 * 60 * 35).toISOString() },
         { status: "Pharmacist Reviewing", at: new Date(Date.now() - 1000 * 60 * 32).toISOString() },
@@ -73,6 +75,7 @@ const seedOrders = (): LiveOrder[] => {
     },
   ];
 };
+
 
 interface OrdersStore {
   orders: LiveOrder[];
