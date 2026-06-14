@@ -408,3 +408,46 @@ function QuotationPanel({ rec }: { rec: RxRecord }) {
     </div>
   );
 }
+
+const DELIVERY_SLOTS = [
+  "Today · 12:00 – 2:00 PM",
+  "Today · 2:00 – 4:00 PM",
+  "Today · 4:00 – 6:00 PM",
+  "Tomorrow · 9:00 – 11:00 AM",
+  "Tomorrow · 11:00 AM – 1:00 PM",
+  "Tomorrow · 2:00 – 4:00 PM",
+];
+
+function DeliverySlotPicker({ rxId }: { rxId: string }) {
+  const setDeliveryTimeSlot = useRx((s) => s.setDeliveryTimeSlot);
+  const [slot, setSlot] = useState<string>(DELIVERY_SLOTS[0]);
+  function confirm() {
+    setDeliveryTimeSlot(rxId, slot);
+    toast.success(`Delivery scheduled · ${slot}`);
+  }
+  return (
+    <div className="bg-white rounded-2xl border border-[#1A7A4A]/30 p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <Clock className="h-4 w-4 text-[#1A7A4A]" />
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-[#1A7A4A]">Payment Received</div>
+          <div className="font-black text-lg text-[#1B3A6B]">Choose a delivery time slot</div>
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2">
+        {DELIVERY_SLOTS.map((s) => (
+          <button
+            key={s}
+            onClick={() => setSlot(s)}
+            className={`text-left h-12 rounded-lg border-2 px-3 text-xs font-bold transition ${slot === s ? "border-[#1A7A4A] bg-emerald-50 text-[#1B3A6B]" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+      <button onClick={confirm} className="mt-3 w-full h-11 rounded-full bg-[#1A7A4A] hover:bg-emerald-700 text-white font-bold text-sm transition">
+        Confirm delivery slot
+      </button>
+    </div>
+  );
+}
