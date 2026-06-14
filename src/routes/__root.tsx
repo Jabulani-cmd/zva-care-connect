@@ -118,6 +118,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const selectedBranchId = useBranch((s) => s.selectedId);
+  const setBranch = useBranch((s) => s.setBranch);
+
+  // Default to first branch on first visit (never block the page with a modal)
+  useEffect(() => {
+    if (!selectedBranchId && BRANCHES[0]) setBranch(BRANCHES[0].id);
+  }, [selectedBranchId, setBranch]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -128,7 +135,6 @@ function RootComponent() {
       </main>
       <BottomTabs />
       <DemoBadge />
-      <BranchPicker />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
