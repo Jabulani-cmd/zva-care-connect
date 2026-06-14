@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Upload, FileText, X, Check, ChevronRight, ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
+import { Camera, Upload, FileText, X, Check, ChevronRight, ArrowLeft, ImagePlus, Loader2, MapPin, Clock } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
 import { CameraCapture } from "@/components/camera-capture";
 import { useAuth } from "@/lib/auth";
 import { useRx, RX_PROGRESS, statusColor, type RxRecord } from "@/lib/rx";
+import { useBranch, getBranch } from "@/lib/branches";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/prescriptions")({
