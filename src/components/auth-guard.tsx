@@ -18,7 +18,7 @@ export function AuthGuard({ role, children }: { role: Role; children: ReactNode 
       didRedirect.current = true;
       navigate({
         to: "/login",
-        search: { role, redirect: location.pathname + location.search } as any,
+        search: { role, redirect: location.pathname } as any,
         replace: true,
       });
     } else if (user.role !== role) {
