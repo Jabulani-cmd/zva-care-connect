@@ -8,8 +8,17 @@ export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign In — Kings Pharmacy" }] }),
   validateSearch: (s: Record<string, unknown>) => {
     let redirect = typeof s.redirect === "string" ? (s.redirect as string) : undefined;
-    // Sanitize: never bounce back to /login (prevents recursive redirect params)
-    if (redirect && /\/login(\?|$)/.test(redirect)) redirect = undefined;
+    // Sanitize: never bounce back to /login (prevents recursive redirect params).
+    // Decode aggressively in case the value was multiply URL-encoded.
+    if (redirect) {
+      let decoded = redirect;
+      try {
+        for (let i = 0; i < 10 && /%25|%2F|%3F/i.test(decoded); i++) {
+          decoded = decodeURIComponent(decoded);
+        }
+      } catch { /* ignore */ }
+      if (/\/login(\?|$|\/)/i.test(decoded) || decoded.length > 200) redirect = undefined;
+    }
     return { role: (s.role as Role) || "customer", redirect };
   },
   component: Login,

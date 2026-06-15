@@ -4,6 +4,7 @@ import { useStore, cartCount } from "@/lib/store";
 import { useAuth, ROLE_HOME, type Role } from "@/lib/auth";
 import { useBranch, getBranch, BRANCHES } from "@/lib/branches";
 import { Logo } from "./logo";
+import { NotificationBell } from "./notification-bell";
 import { useState, useRef, useEffect } from "react";
 
 function BranchChip({ compact = false }: { compact?: boolean }) {
@@ -207,6 +208,7 @@ export function TopNav() {
               </span>
             )}
           </Link>
+          <NotificationBell />
           <UserMenu />
         </div>
 
@@ -265,6 +267,7 @@ export function MobileHeader() {
             className="w-full h-10 rounded-full bg-[#F5F7FA] pl-9 pr-3 text-sm outline-none"
           />
         </div>
+        <NotificationBell />
         <Link to="/cart" className="relative p-1">
           <ShoppingCart className="h-6 w-6 text-[#1B3A6B]" />
           {count > 0 && (

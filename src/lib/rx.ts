@@ -4,6 +4,7 @@
 // ============================================================================
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { notify } from "./notifications";
 
 export const RX_STATUSES = [
   "Received",
@@ -40,6 +41,7 @@ export interface Quotation {
   items: QuotationItem[];
   notes?: string;
   total: number;
+  totalOverride?: number;  // pharmacist-entered final total (if differs from items sum)
   sentAt: string;
   paidAt?: string;
   paymentMethod?: string;
@@ -142,7 +144,7 @@ interface RxState {
   submit: (input: Omit<RxRecord, "id" | "status" | "submittedAt" | "updatedAt" | "history">) => RxRecord;
   setStatus: (id: string, status: RxStatus, note?: string) => void;
   advance: (id: string) => void;
-  sendQuotation: (id: string, items: QuotationItem[], notes?: string) => void;
+  sendQuotation: (id: string, items: QuotationItem[], notes?: string, totalOverride?: number) => void;
   payQuotation: (id: string, method: string) => void;
   setDeliveryTimeSlot: (id: string, slot: string) => void;
 }
@@ -171,7 +173,8 @@ export const useRx = create<RxState>()(
         }, 1200);
         return rec;
       },
-      setStatus: (id, status, note) =>
+      setStatus: (id, status, note) => {
+        const rec = get().list.find((r) => r.id === id);
         set((s) => ({
           list: s.list.map((r) =>
             r.id === id
@@ -184,16 +187,32 @@ export const useRx = create<RxState>()(
                 }
               : r,
           ),
-        })),
+        }));
+        if (rec) {
+          const map: Partial<Record<RxStatus, { title: string; msg: string; kind: "prescription" | "order" | "delivery" }>> = {
+            "Approved": { title: "Prescription approved", msg: `${rec.id} approved — your quotation is being prepared.`, kind: "prescription" },
+            "Info Requested": { title: "More info needed", msg: note ?? `Pharmacist needs more details on ${rec.id}.`, kind: "prescription" },
+            "Rejected": { title: "Prescription rejected", msg: note ?? `${rec.id} was rejected.`, kind: "prescription" },
+            "Order Prepared": { title: "Order packed", msg: `${rec.id} has been packed and is awaiting dispatch.`, kind: "order" },
+            "Ready for Dispatch": { title: "Ready for dispatch", msg: `${rec.id} is ready — a driver will pick it up shortly.`, kind: "order" },
+            "Out for Delivery": { title: "Out for delivery", msg: `Your driver is on the way with ${rec.id}.`, kind: "delivery" },
+            "Delivered": { title: "Delivered", msg: `${rec.id} has been delivered. Thanks for choosing Kings Pharmacy!`, kind: "delivery" },
+          };
+          const m = map[status];
+          if (m) notify(m.kind, rec.customerId, m.title, m.msg, "/prescriptions");
+        }
+      },
       advance: (id) => {
         const r = get().list.find((x) => x.id === id);
         if (!r) return;
         const i = RX_PROGRESS.indexOf(r.status);
         if (i >= 0 && i < RX_PROGRESS.length - 1) get().setStatus(id, RX_PROGRESS[i + 1]);
       },
-      sendQuotation: (id, items, notes) => {
-        const total = items.reduce((a, it) => a + it.qty * it.price, 0);
+      sendQuotation: (id, items, notes, totalOverride) => {
+        const itemsTotal = items.reduce((a, it) => a + it.qty * it.price, 0);
+        const total = typeof totalOverride === "number" && totalOverride > 0 ? totalOverride : itemsTotal;
         const now = new Date().toISOString();
+        const rec = get().list.find((r) => r.id === id);
         set((s) => ({
           list: s.list.map((r) =>
             r.id === id
@@ -201,15 +220,17 @@ export const useRx = create<RxState>()(
                   ...r,
                   status: "Quotation Sent",
                   updatedAt: now,
-                  quotation: { items, notes, total, sentAt: now },
+                  quotation: { items, notes, total, totalOverride, sentAt: now },
                   history: [...r.history, { status: "Quotation Sent", at: now }],
                 }
               : r,
           ),
         }));
+        if (rec) notify("prescription", rec.customerId, "Quotation ready", `${rec.id}: $${total.toFixed(2)} — tap to review & pay.`, "/prescriptions");
       },
       payQuotation: (id, method) => {
         const now = new Date().toISOString();
+        const rec = get().list.find((r) => r.id === id);
         set((s) => ({
           list: s.list.map((r) =>
             r.id === id && r.quotation
@@ -227,6 +248,7 @@ export const useRx = create<RxState>()(
               : r,
           ),
         }));
+        if (rec) notify("order", rec.customerId, "Payment received", `Thanks! We're preparing ${rec.id} for dispatch.`, "/prescriptions");
       },
       setDeliveryTimeSlot: (id, slot) =>
         set((s) => ({
