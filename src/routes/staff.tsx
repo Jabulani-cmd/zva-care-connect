@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ORDERS_BY_STATUS, PHARMACISTS, ASSISTANTS, PRODUCTS_ALL } from "@/lib/demo-data";
-import { FileText, Package, Truck, AlertTriangle, MessageCircle, Star, Check, X, HelpCircle, ChevronRight, ZoomIn, Search, Receipt, Plus, Trash2 } from "lucide-react";
+import { FileText, Package, Truck, AlertTriangle, MessageCircle, Star, Check, X, HelpCircle, ChevronRight, ZoomIn, Search, Receipt, Plus, Trash2, Printer } from "lucide-react";
 import { AuthGuard } from "@/components/auth-guard";
 import { useRx, statusColor, type RxRecord, type RxStatus, type QuotationItem } from "@/lib/rx";
 import { toast } from "sonner";
@@ -292,6 +292,12 @@ function RxDetailPanel({ rec }: { rec: RxRecord }) {
             </button>
           </div>
           <div className="text-[11px] text-slate-400 mt-2">{rec.fileName}</div>
+          <button
+            onClick={() => printPrescription(rec)}
+            className="mt-3 inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-white border border-[#1E5BC6]/30 text-[#1B3A6B] text-xs font-bold hover:bg-[#EAF3FF] transition shadow-sm"
+          >
+            <Printer className="h-3.5 w-3.5" /> Print for Dispensing
+          </button>
         </div>
 
         {/* Info */}
