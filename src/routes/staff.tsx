@@ -332,8 +332,8 @@ function RxDetailPanel({ rec }: { rec: RxRecord }) {
                   <li key={i} className="flex justify-between"><span>{it.name} ×{it.qty}</span><span className="font-bold">${(it.qty * it.price).toFixed(2)}</span></li>
                 ))}
               </ul>
-              <div className="border-t border-[#1E5BC6]/20 mt-2 pt-2 flex justify-between font-black text-[#1B3A6B]">
-                <span>Total</span><span>${rec.quotation.total.toFixed(2)}</span>
+              <div className="border-t border-[#1E5BC6]/20 mt-2 pt-2 flex justify-between font-black text-[#1B3A6B] text-lg">
+                <span>Total (USD)</span><span>${rec.quotation.total.toFixed(2)}</span>
               </div>
               {rec.quotation.paidAt && (
                 <div className="mt-2 text-[11px] font-bold text-emerald-700">✓ Paid via {rec.quotation.paymentMethod}</div>
@@ -396,8 +396,8 @@ function RxDetailPanel({ rec }: { rec: RxRecord }) {
           <QuotationForm
             initialMedication={rec.medication}
             onCancel={() => setMode(null)}
-            onSend={(items, notes) => {
-              sendQuotation(rec.id, items, notes);
+            onSend={(items, notes, totalOverride) => {
+              sendQuotation(rec.id, items, notes, totalOverride);
               toast.success("Quotation sent to customer.");
               setMode(null);
             }}
@@ -417,12 +417,16 @@ function RxDetailPanel({ rec }: { rec: RxRecord }) {
   );
 }
 
-function QuotationForm({ initialMedication, onCancel, onSend }: { initialMedication?: string; onCancel: () => void; onSend: (items: QuotationItem[], notes?: string) => void }) {
+function QuotationForm({ initialMedication, onCancel, onSend }: { initialMedication?: string; onCancel: () => void; onSend: (items: QuotationItem[], notes: string | undefined, totalOverride?: number) => void }) {
   const [items, setItems] = useState<QuotationItem[]>([
     { name: initialMedication ?? "", qty: 1, price: 0 },
   ]);
   const [notes, setNotes] = useState("");
-  const total = items.reduce((a, it) => a + it.qty * it.price, 0);
+  const [totalStr, setTotalStr] = useState<string>("");
+  const itemsTotal = items.reduce((a, it) => a + it.qty * it.price, 0);
+  const parsedOverride = parseFloat(totalStr);
+  const hasOverride = !isNaN(parsedOverride) && parsedOverride > 0;
+  const finalTotal = hasOverride ? parsedOverride : itemsTotal;
 
   function update(i: number, patch: Partial<QuotationItem>) {
     setItems((arr) => arr.map((it, idx) => idx === i ? { ...it, ...patch } : it));
@@ -436,7 +440,10 @@ function QuotationForm({ initialMedication, onCancel, onSend }: { initialMedicat
   function send() {
     const cleaned = items.filter((it) => it.name.trim() && it.price > 0 && it.qty > 0);
     if (cleaned.length === 0) return toast.error("Add at least one item with a price.");
-    onSend(cleaned, notes.trim() || undefined);
+    if (totalStr.trim() !== "" && (isNaN(parsedOverride) || parsedOverride <= 0)) {
+      return toast.error("Total amount must be a positive number.");
+    }
+    onSend(cleaned, notes.trim() || undefined, hasOverride ? parsedOverride : undefined);
   }
 
   return (
@@ -454,15 +461,127 @@ function QuotationForm({ initialMedication, onCancel, onSend }: { initialMedicat
       </div>
       <button onClick={add} className="text-xs font-bold text-[#1E5BC6] inline-flex items-center gap-1"><Plus className="h-3 w-3" /> Add item</button>
       <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Notes for customer (optional)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#1E5BC6] resize-none" />
-      <div className="flex justify-between items-center font-black text-[#1B3A6B] border-t border-slate-100 pt-2">
-        <span>Total</span><span className="text-lg">${total.toFixed(2)}</span>
+
+      <div className="bg-[#EAF3FF] rounded-xl p-3 space-y-2">
+        <div className="flex justify-between text-xs text-slate-600">
+          <span>Items subtotal</span><span className="font-bold">${itemsTotal.toFixed(2)}</span>
+        </div>
+        <label className="block">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#1B3A6B]">Total Amount (USD)</span>
+          <div className="mt-1 flex items-center gap-2 px-3 h-11 rounded-lg border-2 border-[#1E5BC6]/30 focus-within:border-[#1E5BC6] bg-white">
+            <span className="text-[#1B3A6B] font-black">$</span>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={totalStr}
+              onChange={(e) => setTotalStr(e.target.value)}
+              placeholder={itemsTotal.toFixed(2)}
+              className="w-full bg-transparent outline-none text-base font-black text-[#1B3A6B]"
+            />
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">Override the items subtotal if needed (taxes, dispensing fees). Leave empty to use the subtotal.</span>
+        </label>
+        <div className="flex justify-between items-center font-black text-[#1B3A6B] border-t border-[#1E5BC6]/20 pt-2">
+          <span>Total to invoice</span><span className="text-xl">${finalTotal.toFixed(2)}</span>
+        </div>
       </div>
+
       <div className="flex gap-2">
         <button onClick={onCancel} className="flex-1 h-10 rounded-full bg-slate-200 hover:bg-slate-300 text-[#1B3A6B] font-bold text-sm">Cancel</button>
         <button onClick={send} className="flex-1 h-10 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm">Send Quotation</button>
       </div>
     </div>
   );
+}
+
+// ─── Print prescription (A4 layout, opens in new window) ──────────────────
+function printPrescription(rec: RxRecord) {
+  if (typeof window === "undefined") return;
+  const w = window.open("", "_blank", "width=900,height=1200");
+  if (!w) { toast.error("Pop-up blocked. Allow pop-ups to print."); return; }
+  const submitted = new Date(rec.submittedAt).toLocaleString();
+  const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&#39;", '"': "&quot;" }[c]!));
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>${esc(rec.id)} — Dispensing Slip</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, -apple-system, system-ui, sans-serif; color: #1B3A6B; margin: 0; padding: 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1E5BC6; padding-bottom: 12px; margin-bottom: 18px; }
+  .brand { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
+  .brand .tag { font-size: 11px; font-weight: 600; color: #1E5BC6; text-transform: uppercase; letter-spacing: 0.15em; }
+  .ref { text-align: right; }
+  .ref .id { font-family: ui-monospace, monospace; font-size: 20px; font-weight: 900; color: #1B3A6B; }
+  .ref .date { font-size: 11px; color: #64748B; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .card { border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #1E5BC6; font-weight: 800; }
+  .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .row .k { color: #64748B; }
+  .row .v { font-weight: 700; text-align: right; }
+  .notes { background: #FAFAF7; border-left: 4px solid #C47B10; padding: 12px 14px; border-radius: 6px; margin-bottom: 18px; font-size: 13px; }
+  .img-wrap { text-align: center; border: 1px dashed #94A3B8; border-radius: 10px; padding: 14px; }
+  .img-wrap img { max-width: 100%; max-height: 480px; }
+  .img-wrap .caption { font-size: 10px; color: #64748B; margin-top: 6px; }
+  .sign { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .sign .line { border-bottom: 1px solid #1B3A6B; height: 36px; }
+  .sign .lbl { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 0.15em; margin-top: 4px; }
+  .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #94A3B8; border-top: 1px solid #E2E8F0; padding-top: 10px; }
+  @media print { body { padding: 0; } .no-print { display: none; } }
+  .no-print { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; }
+  .no-print button { background: #1E5BC6; color: white; border: 0; padding: 10px 18px; border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer; }
+  .no-print button.ghost { background: #E2E8F0; color: #1B3A6B; }
+</style></head><body>
+<div class="no-print">
+  <button onclick="window.print()">🖨 Print</button>
+  <button class="ghost" onclick="window.close()">Close</button>
+</div>
+<div class="header">
+  <div>
+    <div class="tag">Kings Pharmacy · Dispensing Slip</div>
+    <div class="brand">Kings Pharmacy <span style="color:#1E5BC6">— at your service</span></div>
+  </div>
+  <div class="ref">
+    <div class="id">${esc(rec.id)}</div>
+    <div class="date">Submitted: ${esc(submitted)}</div>
+    <div class="date">Status: ${esc(rec.status)}</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Patient</h3>
+    <div class="row"><span class="k">Name</span><span class="v">${esc(rec.patientName)}</span></div>
+    <div class="row"><span class="k">Phone</span><span class="v">${esc(rec.contactPhone)}</span></div>
+    <div class="row"><span class="k">Delivery</span><span class="v">${esc(rec.deliveryAddress)}</span></div>
+    ${rec.doctor ? `<div class="row"><span class="k">Doctor</span><span class="v">${esc(rec.doctor)}</span></div>` : ""}
+  </div>
+  <div class="card">
+    <h3>Branch &amp; Reference</h3>
+    <div class="row"><span class="k">Branch</span><span class="v">${esc(rec.branchId ?? "Not specified")}</span></div>
+    <div class="row"><span class="k">Reference</span><span class="v">${esc(rec.id)}</span></div>
+    <div class="row"><span class="k">File</span><span class="v">${esc(rec.fileName)}</span></div>
+    ${rec.medication ? `<div class="row"><span class="k">Medication</span><span class="v">${esc(rec.medication)}</span></div>` : ""}
+    ${rec.quotation ? `<div class="row"><span class="k">Quoted total</span><span class="v">$${rec.quotation.total.toFixed(2)}</span></div>` : ""}
+  </div>
+</div>
+
+${rec.notes ? `<div class="notes"><strong>Customer note:</strong> ${esc(rec.notes)}</div>` : ""}
+
+<div class="img-wrap">
+  <img src="${rec.imageDataUrl}" alt="Prescription"/>
+  <div class="caption">Prescription image — verify against patient identity before dispensing.</div>
+</div>
+
+<div class="sign">
+  <div><div class="line"></div><div class="lbl">Picked by (Pharmacy Assistant)</div></div>
+  <div><div class="line"></div><div class="lbl">Verified by (Pharmacist)</div></div>
+</div>
+
+<div class="footer">Kings Pharmacy · Confidential dispensing slip · Printed ${esc(new Date().toLocaleString())}</div>
+<script>setTimeout(function(){window.print();}, 350);</script>
+</body></html>`;
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 function nextStatus(s: RxStatus): RxStatus {
