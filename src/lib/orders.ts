@@ -90,7 +90,7 @@ interface OrdersStore {
 
 export const useOrders = create<OrdersStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       orders: seedOrders(),
       place: (o) => {
         const id = `KP-LIVE-${Math.floor(1000 + Math.random() * 9000)}`;
