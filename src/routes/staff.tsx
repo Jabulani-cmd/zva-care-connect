@@ -598,6 +598,85 @@ ${rec.notes ? `<div class="notes"><strong>Customer note:</strong> ${esc(rec.note
   w.document.open(); w.document.write(html); w.document.close();
 }
 
+// ─── Dispatch controls: assign a demo driver, then dispatch ───────────────
+function DispatchControls({ rec, onDispatch }: { rec: RxRecord; onDispatch: () => void }) {
+  const [driverId, setDriverId] = useState<string>(DRIVERS[0]?.id ?? "");
+  const driver = DRIVERS.find((d) => d.id === driverId);
+  return (
+    <div className="col-span-3 mt-1 rounded-xl border border-[#1E5BC6]/20 bg-[#EAF3FF] p-3 space-y-2">
+      <div className="text-xs font-black text-[#1B3A6B]">Assign driver & dispatch</div>
+      <select
+        value={driverId}
+        onChange={(e) => setDriverId(e.target.value)}
+        className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-[#1B3A6B] outline-none focus:border-[#1E5BC6]"
+      >
+        {DRIVERS.map((d) => (
+          <option key={d.id} value={d.id}>{d.name} · {(d as any).vehicle ?? "Vehicle"}</option>
+        ))}
+      </select>
+      <button
+        onClick={() => { toast.success(`${driver?.name ?? "Driver"} dispatched with ${rec.id}.`); onDispatch(); }}
+        className="w-full h-10 rounded-full bg-[#1B3A6B] hover:bg-[#1E5BC6] text-white font-bold text-sm inline-flex items-center justify-center gap-2"
+      >
+        <Truck className="h-4 w-4" /> Dispatch with {driver?.name?.split(" ")[0] ?? "driver"}
+      </button>
+    </div>
+  );
+}
+
+// ─── Packing slip (post-payment, A4 print) ─────────────────────────────────
+function printPackingSlip(rec: RxRecord) {
+  if (typeof window === "undefined") return;
+  const w = window.open("", "_blank", "width=900,height=1200");
+  if (!w) { toast.error("Pop-up blocked. Allow pop-ups to print."); return; }
+  const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&#39;", '"': "&quot;" }[c]!));
+  const items = rec.quotation?.items ?? [];
+  const rows = items.map((it) => `<tr><td>${esc(it.name)}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">$${(it.qty * it.price).toFixed(2)}</td></tr>`).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>${esc(rec.id)} — Packing Slip</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Inter, system-ui, sans-serif; color: #1B3A6B; padding: 24px; }
+  .header { display:flex; justify-content:space-between; border-bottom:3px solid #1E5BC6; padding-bottom:12px; margin-bottom:18px; }
+  .brand { font-size:22px; font-weight:900; }
+  .tag { font-size:11px; color:#1E5BC6; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; }
+  .ref .id { font-family: ui-monospace, monospace; font-size:20px; font-weight:900; }
+  table { width:100%; border-collapse:collapse; margin: 12px 0; }
+  th, td { border-bottom:1px solid #E2E8F0; padding:8px 6px; font-size:13px; }
+  th { text-align:left; background:#F8FAFC; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#475569; }
+  .card { border:1px solid #E2E8F0; border-radius:10px; padding:14px; margin-bottom:14px; }
+  .row { display:flex; justify-content:space-between; padding:3px 0; font-size:13px; }
+  .row .k { color:#64748B; } .row .v { font-weight:700; }
+  .total { display:flex; justify-content:space-between; font-weight:900; font-size:18px; margin-top:8px; }
+  .sign { margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+  .sign .line { border-bottom:1px solid #1B3A6B; height:36px; }
+  .sign .lbl { font-size:10px; color:#64748B; text-transform:uppercase; letter-spacing:0.15em; margin-top:4px; }
+  .no-print { position:fixed; top:16px; right:16px; }
+  .no-print button { background:#1E5BC6; color:#fff; border:0; padding:10px 18px; border-radius:999px; font-weight:800; cursor:pointer; }
+  @media print { .no-print { display:none; } body { padding:0; } }
+</style></head><body>
+<div class="no-print"><button onclick="window.print()">🖨 Print</button></div>
+<div class="header">
+  <div><div class="tag">Kings Pharmacy · Packing Slip</div><div class="brand">Kings Pharmacy</div></div>
+  <div class="ref"><div class="id">${esc(rec.id)}</div><div style="font-size:11px;color:#64748B;margin-top:4px;">Status: ${esc(rec.status)}</div></div>
+</div>
+<div class="card">
+  <div class="row"><span class="k">Patient</span><span class="v">${esc(rec.patientName)}</span></div>
+  <div class="row"><span class="k">Phone</span><span class="v">${esc(rec.contactPhone)}</span></div>
+  <div class="row"><span class="k">Deliver to</span><span class="v">${esc(rec.deliveryAddress)}</span></div>
+  ${rec.deliveryTimeSlot ? `<div class="row"><span class="k">Time slot</span><span class="v">${esc(rec.deliveryTimeSlot)}</span></div>` : ""}
+  ${rec.quotation?.paymentMethod ? `<div class="row"><span class="k">Paid via</span><span class="v">${esc(rec.quotation.paymentMethod)}</span></div>` : ""}
+</div>
+<table><thead><tr><th>Medication</th><th style="text-align:center;width:80px;">Qty</th><th style="text-align:right;width:100px;">Amount</th></tr></thead><tbody>${rows || `<tr><td colspan="3" style="text-align:center;color:#94A3B8;">No itemised quotation</td></tr>`}</tbody></table>
+${rec.quotation ? `<div class="total"><span>Total Paid</span><span>$${rec.quotation.total.toFixed(2)}</span></div>` : ""}
+<div class="sign">
+  <div><div class="line"></div><div class="lbl">Packed by (Pharmacy Assistant)</div></div>
+  <div><div class="line"></div><div class="lbl">Driver signature</div></div>
+</div>
+<script>setTimeout(function(){window.print();}, 350);</script>
+</body></html>`;
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
 function nextStatus(s: RxStatus): RxStatus {
   const order: RxStatus[] = ["Paid", "Order Prepared", "Ready for Dispatch", "Out for Delivery", "Delivered"];
   const i = order.indexOf(s);
