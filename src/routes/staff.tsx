@@ -355,9 +355,23 @@ function RxDetailPanel({ rec }: { rec: RxRecord }) {
                 <Receipt className="h-4 w-4" /> Enter Quotation
               </button>
             )}
-            {canAdvance && (
+            {rec.status === "Paid" && (
+              <div className="col-span-3 mt-1 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 font-bold flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                💰 Payment received — start preparing this order.
+              </div>
+            )}
+            {canAdvance && rec.status !== "Ready for Dispatch" && (
               <button onClick={() => act(nextStatus(rec.status))} className="col-span-3 mt-1 bg-[#1B3A6B] hover:bg-[#1E5BC6] text-white font-bold text-sm py-2.5 rounded-full transition inline-flex items-center justify-center gap-2">
                 Advance to "{nextStatus(rec.status)}" <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+            {rec.status === "Ready for Dispatch" && (
+              <DispatchControls rec={rec} onDispatch={() => act("Out for Delivery")} />
+            )}
+            {(rec.status === "Order Prepared" || rec.status === "Ready for Dispatch" || rec.status === "Out for Delivery") && (
+              <button onClick={() => printPackingSlip(rec)} className="col-span-3 mt-1 bg-white border border-[#1E5BC6]/30 text-[#1B3A6B] font-bold text-sm py-2.5 rounded-full inline-flex items-center justify-center gap-2 hover:bg-[#EAF3FF]">
+                <Printer className="h-4 w-4" /> Print Packing Slip
               </button>
             )}
             {rec.status === "Quotation Sent" && (
