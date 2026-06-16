@@ -382,8 +382,8 @@ function Home() {
       </div>
 
       {/* ── Footer brand strip ── */}
-      <div className="flex flex-col items-center gap-2 pt-4 pb-6 border-t border-slate-100">
-        <img src={KINGS_LOGO} alt="Kings Pharmacy" className="h-14 w-auto object-contain" />
+      <div className="flex flex-col items-center gap-3 pt-6 pb-8 border-t border-slate-100">
+        <img src={KINGS_LOGO} alt="Kings Pharmacy" className="h-24 md:h-28 w-auto object-contain drop-shadow-sm" />
         <p className="text-xs text-slate-400 text-center">
           Kings Pharmacy — at your service &nbsp;·&nbsp; Powered by{" "}
           <span className="font-semibold text-[#1B3A6B]">MavingTech Business Solutions</span>
