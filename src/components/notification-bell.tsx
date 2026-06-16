@@ -15,6 +15,8 @@ export function NotificationBell() {
   const user = useAuth((s) => s.user);
   const list = useNotifications((s) => s.list);
   const markAllRead = useNotifications((s) => s.markAllRead);
+  const markRead = useNotifications((s) => s.markRead);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
