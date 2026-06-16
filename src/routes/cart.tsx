@@ -210,11 +210,13 @@ function Field({ label, v, value, onChange, full, placeholder }: { label: string
 }
 
 
-type PayMethod = "ecocash" | "zimswitch" | "telecash" | "cod";
+type PayMethod = "ecocash" | "zimswitch" | "zipit" | "telecash" | "card" | "cod";
 const methods: { id: PayMethod; name: string; icon: string; iconBg: string; currency: string; desc: string }[] = [
   { id: "ecocash", name: "EcoCash", icon: "📱", iconBg: "#1A7A4A", currency: "USD / ZiG", desc: "Enter your EcoCash number. An OTP will be sent to confirm." },
   { id: "zimswitch", name: "ZimSwitch", icon: "🏦", iconBg: "#1B3A6B", currency: "USD / ZiG", desc: "Instant interbank transfer via the ZimSwitch network." },
+  { id: "zipit", name: "ZIPIT", icon: "⚡", iconBg: "#0E7C66", currency: "ZiG", desc: "Instant bank-to-bank transfer using your ZIPIT account." },
   { id: "telecash", name: "Telecash", icon: "📱", iconBg: "#7E3AC2", currency: "ZiG", desc: "Telecel mobile money payment." },
+  { id: "card", name: "International Card", icon: "💳", iconBg: "#0F172A", currency: "USD", desc: "Pay with Visa or Mastercard. Secured by 3-D Secure." },
   { id: "cod", name: "Cash on Delivery", icon: "💰", iconBg: "#C49A2C", currency: "USD / ZiG", desc: "Pay the driver when your order arrives." },
 ];
 
@@ -262,12 +264,13 @@ function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSu
   }
 
   if (phase === "processing") return (
-    <div className="py-10 text-center"><Loader2 className="h-10 w-10 animate-spin text-[#1E5BC6] mx-auto" /><div className="mt-3 font-bold text-[#1B3A6B]">Processing payment…</div></div>
+    <div className="py-10 text-center"><Loader2 className="h-10 w-10 animate-spin text-[#1E5BC6] mx-auto" /><div className="mt-3 font-bold text-[#1B3A6B]">Processing payment…</div><div className="text-xs text-muted-foreground mt-1">Securing your transaction with {method.name}</div></div>
   );
   if (phase === "success") return (
     <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-8 text-center">
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }} className="h-16 w-16 mx-auto rounded-full bg-[#1A7A4A] flex items-center justify-center text-white"><Check className="h-10 w-10" strokeWidth={3} /></motion.div>
       <div className="mt-3 font-black text-[#1B3A6B]">Payment Successful</div>
+      <div className="text-xs text-muted-foreground mt-1">{method.name} · {amt}</div>
     </motion.div>
   );
 
@@ -299,6 +302,27 @@ function PayForm({ method, onSuccess, total }: { method: typeof methods[0]; onSu
           </label>
           <Field label="Card / Account Number" placeholder="00112233445" />
           <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Confirm Transfer {amt}</button>
+        </>
+      )}
+      {phase === "form" && method.id === "zipit" && (
+        <>
+          <Field label="ZIPIT Account Number" placeholder="263 077 123 4567" />
+          <label className="block"><span className="text-xs font-bold text-[#1B3A6B]">Sending Bank</span>
+            <select className="mt-1 w-full h-11 rounded-lg border border-border px-3 text-sm"><option>CBZ</option><option>NMB</option><option>Stanbic</option><option>ZB Bank</option></select>
+          </label>
+          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Send via ZIPIT {amt}</button>
+        </>
+      )}
+      {phase === "form" && method.id === "card" && (
+        <>
+          <CardNumber />
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="Expiry" placeholder="MM / YY" />
+            <Field label="CVV" placeholder="•••" />
+          </div>
+          <Field label="Name on Card" placeholder="As shown on card" />
+          <button onClick={submit} className="w-full h-11 rounded-full bg-[#1B3A6B] text-white font-bold flex items-center justify-center gap-2"><Lock className="h-4 w-4" /> Pay Securely {amt}</button>
+          <div className="text-[10px] text-center text-muted-foreground">Encrypted · 3-D Secure · Visa / Mastercard</div>
         </>
       )}
       {phase === "form" && method.id === "cod" && (
