@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Package, Truck, FileText, Check } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useNotifications, timeAgo, type NotifKind } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth";
 
