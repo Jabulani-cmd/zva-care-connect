@@ -102,27 +102,42 @@ export const useOrders = create<OrdersStore>()(
           history: [{ status: "Order Confirmed", at: NOW() }],
         };
         set((s) => ({ orders: [order, ...s.orders] }));
+        notify("order", o.customerId, "Order placed", `Order #${id} placed successfully — total $${o.total.toFixed(2)}.`, `/track?id=${id}`);
         return order;
       },
-      advance: (id) => set((s) => ({
-        orders: s.orders.map((o) => {
-          if (o.id !== id) return o;
-          const idx = ORDER_FLOW.indexOf(o.status);
-          if (idx >= ORDER_FLOW.length - 1) return o;
-          const next = ORDER_FLOW[idx + 1];
-          return { ...o, status: next, history: [...o.history, { status: next, at: NOW() }] };
-        }),
-      })),
+      advance: (id) => {
+        const cur = get().orders.find((o) => o.id === id);
+        if (!cur) return;
+        const idx = ORDER_FLOW.indexOf(cur.status);
+        if (idx >= ORDER_FLOW.length - 1) return;
+        const next = ORDER_FLOW[idx + 1];
+        set((s) => ({
+          orders: s.orders.map((o) => o.id === id ? { ...o, status: next, history: [...o.history, { status: next, at: NOW() }] } : o),
+        }));
+        const map: Partial<Record<LiveStatus, { title: string; msg: string; kind: "order" | "delivery" }>> = {
+          "Pharmacist Reviewing": { title: "Pharmacist reviewing", msg: `Order #${id} is being reviewed.`, kind: "order" },
+          "Preparing Order": { title: "Packing your order", msg: `Order #${id} is being packed.`, kind: "order" },
+          "Driver Assigned": { title: "Driver assigned", msg: `A driver was assigned to #${id}.`, kind: "delivery" },
+          "Out for Delivery": { title: "Out for delivery", msg: `Order #${id} is on its way.`, kind: "delivery" },
+          "Delivered": { title: "Delivered", msg: `Order #${id} delivered. Enjoy!`, kind: "delivery" },
+        };
+        const m = map[next];
+        if (m) notify(m.kind, cur.customerId, m.title, m.msg, `/track?id=${id}`);
+      },
       setStatus: (id, status) => set((s) => ({
         orders: s.orders.map((o) => o.id === id ? { ...o, status, history: [...o.history, { status, at: NOW() }] } : o),
       })),
-      assignDriver: (id, d) => set((s) => ({
-        orders: s.orders.map((o) => o.id === id ? {
-          ...o, driverId: d.id, driverName: d.name,
-          status: "Driver Assigned",
-          history: [...o.history, { status: "Driver Assigned", at: NOW() }],
-        } : o),
-      })),
+      assignDriver: (id, d) => {
+        const cur = get().orders.find((o) => o.id === id);
+        set((s) => ({
+          orders: s.orders.map((o) => o.id === id ? {
+            ...o, driverId: d.id, driverName: d.name,
+            status: "Driver Assigned",
+            history: [...o.history, { status: "Driver Assigned", at: NOW() }],
+          } : o),
+        }));
+        if (cur) notify("delivery", cur.customerId, "Driver assigned", `${d.name} will deliver order #${id}.`, `/track?id=${id}`);
+      },
       rate: (id, stars, text) => set((s) => ({
         orders: s.orders.map((o) => o.id === id ? { ...o, rating: { stars, text, at: NOW() } } : o),
       })),
