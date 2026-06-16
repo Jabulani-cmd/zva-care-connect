@@ -184,7 +184,7 @@ export function TopNav() {
       <PromoStrip />
       <header>
         {/* Row 1 — logo · search · branch + cart + account */}
-        <div className="max-w-7xl mx-auto px-6 h-[88px] flex items-center gap-5">
+        <div className="max-w-7xl mx-auto px-6 h-[112px] flex items-center gap-5">
           <Link to="/" className="shrink-0">
             <Logo />
           </Link>
@@ -337,11 +337,93 @@ export function BottomTabs() {
 }
 
 export function DemoBadge() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [running, setRunning] = useState<null | "shopping" | "rx">(null);
+
+  async function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
+
+  async function runShopping() {
+    setRunning("shopping");
+    setOpen(false);
+    const { useOrders } = await import("@/lib/orders");
+    const { useAuth } = await import("@/lib/auth");
+    const user = useAuth.getState().user;
+    const customerId = user?.id ?? "c1";
+    const order = useOrders.getState().place({
+      customerId,
+      customerName: user ? `${user.firstName} ${user.lastName}` : "Demo Customer",
+      phone: "+263 77 000 0000",
+      address: "Demo Address, Harare",
+      payment: "EcoCash",
+      items: [{ productId: "demo", name: "Demo Item", price: 12.5, qty: 1 }],
+      subtotal: 12.5,
+      delivery: 2.5,
+      total: 15,
+    });
+    navigate({ to: "/track", search: { id: order.id } as any });
+    await sleep(1500);
+    const advance = useOrders.getState().advance;
+    for (let i = 0; i < 5; i++) { advance(order.id); await sleep(1500); }
+    setRunning(null);
+  }
+
+  async function runRx() {
+    setRunning("rx");
+    setOpen(false);
+    const { useRx } = await import("@/lib/rx");
+    const { useAuth } = await import("@/lib/auth");
+    const user = useAuth.getState().user;
+    const customerId = user?.id ?? "c1";
+    navigate({ to: "/prescriptions" });
+    await sleep(800);
+    const rec = useRx.getState().submit({
+      customerId,
+      patientName: user ? `${user.firstName} ${user.lastName}` : "Demo Patient",
+      contactPhone: "+263 77 000 0000",
+      deliveryAddress: "Demo Address, Harare",
+      notes: "Auto-demo prescription",
+      imageDataUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI0VBRjNGRiIvPjx0ZXh0IHg9IjEwMCIgeT0iMTEwIiBmb250LXNpemU9IjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMUIzQTZCIj7wn5OLPC90ZXh0Pjwvc3ZnPg==",
+      fileName: "demo-rx.svg",
+      fileType: "image/svg+xml",
+    });
+    await sleep(1800);
+    const rx = useRx.getState();
+    rx.setStatus(rec.id, "Approved");
+    await sleep(1200);
+    rx.sendQuotation(rec.id, [{ name: "Demo medication", qty: 1, price: 8.5 }], "Demo quote");
+    await sleep(1500);
+    rx.payQuotation(rec.id, "EcoCash");
+    await sleep(1200);
+    rx.advance(rec.id); await sleep(1200);
+    rx.advance(rec.id); await sleep(1200);
+    rx.advance(rec.id); await sleep(1500);
+    rx.advance(rec.id);
+    setRunning(null);
+  }
+
   return (
-    <div className="fixed top-2 right-2 md:top-auto md:bottom-4 md:right-4 z-50 pointer-events-none">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E5BC6] to-[#1B3A6B] text-white px-3 py-1.5 text-[10px] font-black shadow-lg uppercase tracking-wider">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#1A7A4A] animate-pulse" /> Demo Mode
-      </span>
+    <div className="fixed top-2 right-2 md:top-auto md:bottom-4 md:right-4 z-50">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E5BC6] to-[#1B3A6B] text-white px-3 py-1.5 text-[10px] font-black shadow-lg uppercase tracking-wider hover:scale-105 transition"
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${running ? "bg-amber-300" : "bg-[#1A7A4A]"} animate-pulse`} />
+        {running ? `Running demo…` : "Demo Mode"}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="px-3 py-2 bg-gradient-to-br from-[#1E5BC6] to-[#1B3A6B] text-white text-[11px] font-black uppercase tracking-widest">Guided Demo</div>
+          <button onClick={runShopping} disabled={!!running} className="w-full text-left px-3 py-3 text-xs font-bold text-[#1B3A6B] hover:bg-slate-50 disabled:opacity-50">
+            🛒 Auto-run shopping checkout
+            <div className="text-[10px] font-normal text-slate-500 mt-0.5">Place order → track → deliver</div>
+          </button>
+          <button onClick={runRx} disabled={!!running} className="w-full text-left px-3 py-3 text-xs font-bold text-[#1B3A6B] hover:bg-slate-50 border-t border-slate-100 disabled:opacity-50">
+            📋 Auto-run prescription flow
+            <div className="text-[10px] font-normal text-slate-500 mt-0.5">Submit → quote → pay → deliver</div>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

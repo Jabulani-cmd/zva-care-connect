@@ -8,8 +8,8 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         alt="Kings Pharmacy — At Your Service"
         className={
           compact
-            ? "h-12 w-auto object-contain"
-            : "h-16 w-auto object-contain"
+            ? "h-16 w-auto object-contain drop-shadow-sm"
+            : "h-24 w-auto object-contain drop-shadow-sm"
         }
       />
     </div>

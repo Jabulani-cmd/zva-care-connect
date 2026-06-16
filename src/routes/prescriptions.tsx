@@ -348,23 +348,32 @@ function Detail2({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between gap-3"><span className="text-slate-500">{k}</span><span className="font-bold text-[#1B3A6B] text-right">{v}</span></div>;
 }
 
-const PAY_METHODS = ["EcoCash", "ZimSwitch", "Telecash", "Cash on Delivery"] as const;
+const RX_PAY_METHODS = [
+  { id: "ecocash",   name: "EcoCash",            icon: "📱", desc: "OTP confirmation",       flow: "otp"    as const },
+  { id: "zimswitch", name: "ZimSwitch",          icon: "🏦", desc: "Interbank transfer",     flow: "card"   as const },
+  { id: "zipit",     name: "ZIPIT",              icon: "⚡", desc: "Instant bank transfer",  flow: "acct"   as const },
+  { id: "telecash",  name: "Telecash",           icon: "📱", desc: "OTP confirmation",       flow: "otp"    as const },
+  { id: "card",      name: "International Card", icon: "💳", desc: "Visa / Mastercard",      flow: "card"   as const },
+] as const;
 
 function QuotationPanel({ rec }: { rec: RxRecord }) {
   const payQuotation = useRx((s) => s.payQuotation);
-  const [paying, setPaying] = useState(false);
-  const [method, setMethod] = useState<string>("EcoCash");
+  const [phase, setPhase] = useState<"select" | "form" | "processing" | "success">("select");
+  const [methodId, setMethodId] = useState<typeof RX_PAY_METHODS[number]["id"]>("ecocash");
   if (!rec.quotation) return null;
   const q = rec.quotation;
   const paid = !!q.paidAt;
+  const method = RX_PAY_METHODS.find((m) => m.id === methodId)!;
 
-  function pay() {
-    setPaying(true);
+  function startProcessing() {
+    setPhase("processing");
     setTimeout(() => {
-      payQuotation(rec.id, method);
-      toast.success(`Payment confirmed via ${method}.`);
-      setPaying(false);
-    }, 1100);
+      setPhase("success");
+      setTimeout(() => {
+        payQuotation(rec.id, method.name);
+        toast.success(`Payment confirmed via ${method.name}.`);
+      }, 900);
+    }, 1400);
   }
 
   return (
@@ -389,23 +398,88 @@ function QuotationPanel({ rec }: { rec: RxRecord }) {
       </div>
       {q.notes && <div className="mt-2 text-xs text-slate-500 italic">{q.notes}</div>}
 
-      {!paid && (
+      {!paid && phase === "select" && (
         <div className="mt-4 space-y-2">
           <div className="text-xs font-bold text-[#1B3A6B]">Choose payment method</div>
           <div className="grid grid-cols-2 gap-2">
-            {PAY_METHODS.map((m) => (
-              <button key={m} onClick={() => setMethod(m)} className={`h-10 rounded-lg border-2 text-xs font-bold transition ${method === m ? "border-[#1E5BC6] bg-[#EAF3FF] text-[#1B3A6B]" : "border-slate-200 text-slate-500"}`}>{m}</button>
+            {RX_PAY_METHODS.map((m) => (
+              <button key={m.id} onClick={() => setMethodId(m.id)} className={`text-left h-14 rounded-lg border-2 px-3 transition flex items-center gap-2 ${methodId === m.id ? "border-[#1E5BC6] bg-[#EAF3FF]" : "border-slate-200 hover:border-slate-300"}`}>
+                <span className="text-lg">{m.icon}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-xs font-black text-[#1B3A6B] truncate">{m.name}</span>
+                  <span className="block text-[10px] text-slate-500 truncate">{m.desc}</span>
+                </span>
+              </button>
             ))}
           </div>
-          <button onClick={pay} disabled={paying} className="w-full h-11 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm transition disabled:opacity-60 inline-flex items-center justify-center gap-2">
-            {paying ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</> : `Pay Now $${q.total.toFixed(2)}`}
+          <button onClick={() => setPhase("form")} className="w-full h-11 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-sm transition">
+            Pay Now ${q.total.toFixed(2)} →
           </button>
         </div>
       )}
+
+      {!paid && phase === "form" && (
+        <div className="mt-4 space-y-2 bg-slate-50 rounded-xl p-3">
+          <div className="text-xs font-bold text-[#1B3A6B] flex items-center gap-2"><span className="text-lg">{method.icon}</span> {method.name}</div>
+          {method.flow === "otp" && (
+            <>
+              <RxField label="Mobile Number" placeholder="+263 77 123 4567" />
+              <div className="text-[10px] text-slate-500">An OTP will be sent to confirm payment of ${q.total.toFixed(2)}.</div>
+            </>
+          )}
+          {method.flow === "acct" && (
+            <>
+              <RxField label="ZIPIT Account Number" placeholder="263 077 123 4567" />
+              <RxField label="Bank" placeholder="e.g. CBZ" />
+            </>
+          )}
+          {method.flow === "card" && (
+            <>
+              <RxField label="Card Number" placeholder="4242 4242 4242 4242" />
+              <div className="grid grid-cols-2 gap-2">
+                <RxField label="Expiry" placeholder="MM / YY" />
+                <RxField label="CVV" placeholder="•••" />
+              </div>
+            </>
+          )}
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setPhase("select")} className="flex-1 h-10 rounded-full bg-slate-200 text-[#1B3A6B] font-bold text-xs">Back</button>
+            <button onClick={startProcessing} className="flex-1 h-10 rounded-full bg-[#1E5BC6] hover:bg-[#1B3A6B] text-white font-bold text-xs">
+              Confirm ${q.total.toFixed(2)}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!paid && phase === "processing" && (
+        <div className="mt-4 py-8 text-center bg-slate-50 rounded-xl">
+          <Loader2 className="h-10 w-10 animate-spin text-[#1E5BC6] mx-auto" />
+          <div className="mt-2 font-bold text-[#1B3A6B] text-sm">Processing payment…</div>
+          <div className="text-[10px] text-slate-500">Securing with {method.name}</div>
+        </div>
+      )}
+
+      {!paid && phase === "success" && (
+        <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-4 py-6 text-center bg-emerald-50 rounded-xl">
+          <div className="h-14 w-14 mx-auto rounded-full bg-[#1A7A4A] flex items-center justify-center text-white"><Check className="h-8 w-8" strokeWidth={3} /></div>
+          <div className="mt-2 font-black text-[#1B3A6B]">Payment Successful</div>
+          <div className="text-xs text-emerald-700">Your medication is being prepared</div>
+        </motion.div>
+      )}
+
       {paid && (
         <div className="mt-3 text-xs text-emerald-700 font-bold">✓ Paid via {q.paymentMethod} · {new Date(q.paidAt!).toLocaleString()}</div>
       )}
     </div>
+  );
+}
+
+function RxField({ label, placeholder }: { label: string; placeholder: string }) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-bold text-[#1B3A6B] uppercase tracking-wider">{label}</span>
+      <input placeholder={placeholder} className="mt-1 w-full h-10 rounded-lg border border-slate-200 px-3 text-sm bg-white outline-none focus:border-[#1E5BC6]" />
+    </label>
   );
 }
 
