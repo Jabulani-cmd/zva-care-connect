@@ -184,7 +184,7 @@ export function TopNav() {
       <PromoStrip />
       <header>
         {/* Row 1 — logo · search · branch + cart + account */}
-        <div className="max-w-7xl mx-auto px-6 h-[88px] flex items-center gap-5">
+        <div className="max-w-7xl mx-auto px-6 h-[112px] flex items-center gap-5">
           <Link to="/" className="shrink-0">
             <Logo />
           </Link>
