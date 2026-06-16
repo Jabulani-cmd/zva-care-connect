@@ -7,6 +7,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DRIVERS, type Person } from "./demo-data";
 import { PRODUCTS_ALL } from "./demo-data";
+import { notify } from "./notifications";
 
 export const ORDER_FLOW = [
   "Order Confirmed",
