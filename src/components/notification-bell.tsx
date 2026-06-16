@@ -73,8 +73,22 @@ export function NotificationBell() {
             )}
             {mine.slice(0, 20).map((n) => {
               const Icon = ICON[n.kind];
+              const clickable = !!n.link;
               return (
-                <div key={n.id} className={`px-4 py-3 flex gap-3 ${n.read ? "" : "bg-[#F8FBFF]"}`}>
+                <button
+                  key={n.id}
+                  onClick={() => {
+                    markRead(n.id);
+                    if (n.link) {
+                      const [path, qs] = n.link.split("?");
+                      const search: Record<string, string> = {};
+                      if (qs) qs.split("&").forEach((p) => { const [k, v] = p.split("="); if (k) search[k] = v ?? ""; });
+                      setOpen(false);
+                      navigate({ to: path as any, search: search as any });
+                    }
+                  }}
+                  className={`w-full text-left px-4 py-3 flex gap-3 transition ${n.read ? "" : "bg-[#F8FBFF]"} ${clickable ? "hover:bg-slate-50 cursor-pointer" : "cursor-default"}`}
+                >
                   <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${TONE[n.kind]}`}>
                     <Icon className="h-4 w-4" />
                   </div>
@@ -86,7 +100,7 @@ export function NotificationBell() {
                     <div className="text-xs text-slate-600 mt-0.5">{n.message}</div>
                     <div className="text-[10px] text-slate-400 mt-1">{timeAgo(n.at)}</div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
